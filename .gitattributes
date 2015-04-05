@@ -1,0 +1,4 @@
+* text=auto
+*.dos text eol=crlf
+*.mac text eol=cr
+*.unix text eol=lf 
