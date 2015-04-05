@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "block.h"
+#include "player.h"
 
 class Map
 {
@@ -16,11 +17,13 @@ public:
         Type type;
     };
 
+    Map();
     Map(const char * file); /* throws MapLoadException */
     void load(const char * file); /* throws MapLoadException */
     ~Map();
 
     void draw();
+    void keyEvent(int key);
 private:
     std::vector<Block*> map;
     int width;
@@ -29,6 +32,8 @@ private:
 
     static const int maxWidth = 80;
     static const int maxHeight = 24;
+
+    Player player;
 };
 
 #endif

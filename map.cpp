@@ -3,6 +3,10 @@
 #include <fstream>
 #include <ncurses.h>
 
+Map::Map()
+{
+}
+
 Map::Map(const char *file)
 {
     load(file);
@@ -104,6 +108,7 @@ void Map::load(const char *file)
                     if ( playerFound ) /* player duplication */
                         throw MapLoadException(MapLoadException::INVALID_MAP);
                     playerFound = true;
+                    player.setPos(Pos(i,j));
                 }
             } catch ( const Block::UnknownType & ) {
                 throw MapLoadException(MapLoadException::INVALID_MAP);
@@ -133,6 +138,51 @@ void Map::draw()
     for ( int i = 0 ; i < height() ; i++ )
         for ( int j = 0 ; j < width ; j++ )
             mvaddch(i, j, Block::typeToSign(map[i][j].type));
+}
+
+void Map::keyEvent(int key)
+{
+    if ( key == KEY_DOWN || key == 's' )
+    {
+        Pos p = player.getPos();
+        p.x++;
+        if ( p.x > height()-2 )
+            return;
+        map[p.x-1][p.y].type = Block::BlockType::BLOCK_EMPTY;
+        map[p.x][p.y].type = Block::BlockType::BLOCK_PLAYER;
+        player.setPos(p);
+    }
+    else if ( key == KEY_UP || key == 'w' )
+    {
+        Pos p = player.getPos();
+        p.x--;
+        if ( p.x < 1 )
+            return;
+        map[p.x+1][p.y].type = Block::BlockType::BLOCK_EMPTY;
+        map[p.x][p.y].type = Block::BlockType::BLOCK_PLAYER;
+        player.setPos(p);
+    }
+    else if ( key == KEY_LEFT || key == 'a' )
+    {
+        Pos p = player.getPos();
+        p.y--;
+        if ( p.y < 1 )
+            return;
+        map[p.x][p.y+1].type = Block::BlockType::BLOCK_EMPTY;
+        map[p.x][p.y].type = Block::BlockType::BLOCK_PLAYER;
+        player.setPos(p);
+
+    }
+    else if ( key == KEY_RIGHT || key == 'd' )
+    {
+        Pos p = player.getPos();
+        p.y++;
+        if ( p.y > width-2 )
+            return;
+        map[p.x][p.y-1].type = Block::BlockType::BLOCK_EMPTY;
+        map[p.x][p.y].type = Block::BlockType::BLOCK_PLAYER;
+        player.setPos(p);
+    }
 }
 
 int Map::height() const

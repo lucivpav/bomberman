@@ -6,11 +6,13 @@ all: bomberman
 
 tests: test
 
-bomberman: main.o map.o block.o
-	$(CC) $(CFLAGS) main.o map.o block.o -o bomberman $(LDFLAGS)
+OBJECTS=map.o block.o game.o pos.o player.o
 
-test: test.o map.o block.o
-	$(CC) $(CFLAGS) test.o map.o block.o -o test $(LDFLAGS)
+bomberman: main.o $(OBJECTS)
+	$(CC) $(CFLAGS) main.o $(OBJECTS) -o bomberman $(LDFLAGS)
+
+test: test.o $(OBJECTS)
+	$(CC) $(CFLAGS) test.o $(OBJECTS) -o test $(LDFLAGS)
 
 test.o: tests/test.cpp
 	$(CC) -c $(CFLAGS) tests/test.cpp
@@ -23,6 +25,15 @@ map.o: map.cpp
 
 block.o: block.cpp
 	$(CC) -c $(CFLAGS) block.cpp
+
+game.o: game.cpp
+	$(CC) -c $(CFLAGS) game.cpp
+
+pos.o: pos.cpp
+	$(CC) -c $(CFLAGS) pos.cpp
+
+player.o: player.cpp
+	$(CC) -c $(CFLAGS) player.cpp
 
 clean:
 	rm *.o bomberman test
