@@ -61,7 +61,7 @@ void Map::load(const char *file)
         throw MapLoadException(MapLoadException::INVALID_MAP);
 
     map.push_back(new Block[width]);
-    for ( int i = 0 ; i < line.size() ; i++ )
+    for ( size_t i = 0 ; i < line.size() ; i++ )
     {
         map[0][i].type = Block::BLOCK_WALL;
         if ( line[i] != Block::typeToSign(Block::BLOCK_WALL) )
@@ -87,13 +87,13 @@ void Map::load(const char *file)
                 throw MapLoadException(MapLoadException::READ_FAILURE);
         }
 
-        if ( line.size() != width ||
+        if ( (int)line.size() != width ||
              line[0] != Block::typeToSign(Block::BLOCK_WALL) ||
              line.back() != Block::typeToSign(Block::BLOCK_WALL) )
             throw MapLoadException(MapLoadException::INVALID_MAP);
 
         map.push_back(new Block[width]);
-        for ( int j = 0 ; j < line.size() ; j++ )
+        for ( size_t j = 0 ; j < line.size() ; j++ )
         {
             char c = line[j];
             try {
