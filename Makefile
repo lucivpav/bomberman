@@ -17,23 +17,23 @@ test: test.o $(OBJECTS)
 test.o: tests/test.cpp
 	$(CC) -c $(CFLAGS) tests/test.cpp
 
-main.o: main.cpp
-	$(CC) -c $(CFLAGS) main.cpp
+main.o: src/main.cpp
+	$(CC) -c $(CFLAGS) src/main.cpp
 
-map.o: map.cpp
-	$(CC) -c $(CFLAGS) map.cpp
+map.o: src/map.cpp
+	$(CC) -c $(CFLAGS) src/map.cpp
 
-block.o: block.cpp
-	$(CC) -c $(CFLAGS) block.cpp
+block.o: src/block.cpp
+	$(CC) -c $(CFLAGS) src/block.cpp
 
-game.o: game.cpp
-	$(CC) -c $(CFLAGS) game.cpp
+game.o: src/game.cpp
+	$(CC) -c $(CFLAGS) src/game.cpp
 
-pos.o: pos.cpp
-	$(CC) -c $(CFLAGS) pos.cpp
+pos.o: src/pos.cpp
+	$(CC) -c $(CFLAGS) src/pos.cpp
 
-player.o: player.cpp
-	$(CC) -c $(CFLAGS) player.cpp
+player.o: src/player.cpp
+	$(CC) -c $(CFLAGS) src/player.cpp
 
 clean:
 	rm *.o bomberman test
