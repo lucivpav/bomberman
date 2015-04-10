@@ -19,7 +19,6 @@ void Map::load(const char *file)
     Encoding encoding;
 
     clearMap();
-    map.clear();
 
     if ( !file )
         throw MapLoadException(MapLoadException::READ_FAILURE);
@@ -64,10 +63,11 @@ void Map::load(const char *file)
     if ( width < 3 || width > maxWidth )
         throw MapLoadException(MapLoadException::INVALID_MAP);
 
-    map.push_back(new Block[width]);
+    map.push_back(new char[width+1]);
+    map[0][width] = '\0';
     for ( size_t i = 0 ; i < line.size() ; i++ )
     {
-        map[0][i].type = Block::BLOCK_WALL;
+        map[0][i] = Block::typeToSign(Block::BLOCK_WALL);
         if ( line[i] != Block::typeToSign(Block::BLOCK_WALL) )
             throw MapLoadException(MapLoadException::INVALID_MAP);
     }
@@ -96,22 +96,20 @@ void Map::load(const char *file)
              line.back() != Block::typeToSign(Block::BLOCK_WALL) )
             throw MapLoadException(MapLoadException::INVALID_MAP);
 
-        map.push_back(new Block[width]);
+        map.push_back(new char[width+1]);
+        map.back()[width] = '\0';
         for ( size_t j = 0 ; j < line.size() ; j++ )
         {
             char c = line[j];
-            try {
-                Block::BlockType type = Block::signToType(c);
-                map[i][j].type = type;
-                if ( type == Block::BLOCK_PLAYER )
-                {
-                    if ( playerFound ) /* player duplication */
-                        throw MapLoadException(MapLoadException::INVALID_MAP);
-                    playerFound = true;
-                    player.setPos(Pos(i,j));
-                }
-            } catch ( const Block::UnknownType & ) {
+            if ( !Block::validSymbol(c) )
                 throw MapLoadException(MapLoadException::INVALID_MAP);
+            map[i][j] = c;
+            if ( c == Block::typeToSign(Block::BLOCK_PLAYER) )
+            {
+                if ( playerFound ) /* player duplication */
+                    throw MapLoadException(MapLoadException::INVALID_MAP);
+                playerFound = true;
+                player.setPos(Pos(i,j));
             }
         }
     }
@@ -122,7 +120,7 @@ void Map::load(const char *file)
     /* check last line */
     for ( int i = 1 ; i < width-1 ; i++ )
     {
-        if ( map.back()[i].type != Block::BLOCK_WALL )
+        if ( map.back()[i] != Block::typeToSign(Block::BLOCK_WALL) )
             throw MapLoadException(MapLoadException::INVALID_MAP);
     }
 }
@@ -136,8 +134,7 @@ Map::~Map()
 void Map::draw()
 {
     for ( int i = 0 ; i < height() ; i++ )
-        for ( int j = 0 ; j < width ; j++ )
-            mvaddch(i, j, Block::typeToSign(map[i][j].type));
+        mvprintw(i, 0, map[i]); //null terminator necessary
 }
 
 void Map::keyEvent(int key)
@@ -148,8 +145,8 @@ void Map::keyEvent(int key)
         p.x++;
         if ( p.x > height()-2 )
             return;
-        map[p.x-1][p.y].type = Block::BlockType::BLOCK_EMPTY;
-        map[p.x][p.y].type = Block::BlockType::BLOCK_PLAYER;
+        map[p.x-1][p.y] = Block::typeToSign(Block::BlockType::BLOCK_EMPTY);
+        map[p.x][p.y] = Block::typeToSign(Block::BlockType::BLOCK_PLAYER);
         player.setPos(p);
     }
     else if ( key == KEY_UP || key == 'w' )
@@ -158,8 +155,8 @@ void Map::keyEvent(int key)
         p.x--;
         if ( p.x < 1 )
             return;
-        map[p.x+1][p.y].type = Block::BlockType::BLOCK_EMPTY;
-        map[p.x][p.y].type = Block::BlockType::BLOCK_PLAYER;
+        map[p.x+1][p.y] = Block::typeToSign(Block::BlockType::BLOCK_EMPTY);
+        map[p.x][p.y] = Block::typeToSign(Block::BlockType::BLOCK_PLAYER);
         player.setPos(p);
     }
     else if ( key == KEY_LEFT || key == 'a' )
@@ -168,8 +165,8 @@ void Map::keyEvent(int key)
         p.y--;
         if ( p.y < 1 )
             return;
-        map[p.x][p.y+1].type = Block::BlockType::BLOCK_EMPTY;
-        map[p.x][p.y].type = Block::BlockType::BLOCK_PLAYER;
+        map[p.x][p.y+1] = Block::typeToSign(Block::BlockType::BLOCK_EMPTY);
+        map[p.x][p.y] = Block::typeToSign(Block::BlockType::BLOCK_PLAYER);
         player.setPos(p);
 
     }
@@ -179,8 +176,8 @@ void Map::keyEvent(int key)
         p.y++;
         if ( p.y > width-2 )
             return;
-        map[p.x][p.y-1].type = Block::BlockType::BLOCK_EMPTY;
-        map[p.x][p.y].type = Block::BlockType::BLOCK_PLAYER;
+        map[p.x][p.y-1] = Block::typeToSign(Block::BlockType::BLOCK_EMPTY);
+        map[p.x][p.y] = Block::typeToSign(Block::BlockType::BLOCK_PLAYER);
         player.setPos(p);
     }
 }

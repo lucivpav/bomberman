@@ -25,7 +25,7 @@ public:
     void draw();
     void keyEvent(int key);
 private:
-    std::vector<Block*> map;
+    std::vector<char*> map;
     int width;
     int height() const;
     void clearMap();
