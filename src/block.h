@@ -4,14 +4,19 @@
 class Block
 {
 public:
-    enum BlockType {BLOCK_EMPTY=0,
-                    BLOCK_WALL,
-                    BLOCK_PLAYER,
-                    BLOCK_DESTRUCTABLE};
-    static char typeToSign(BlockType t);
-    static bool validSymbol(char c);
+    enum Type {EMPTY = 0,
+               WALL,
+               PLAYER,
+               DESTRUCTABLE,
+               BOMB,
+               FIRE};
+    static char typeToSymbol(Type t);
+    static bool validSymbol(char symbol);
+    static bool isSolid(char symbol);
 private:
-    static constexpr const char * signs = " Wcz";
+    static Type symbolToType(char symbol);
+    static constexpr const char * signs = " Wczb#";
+    static constexpr const char * solid = "011110";
 };
 
 #endif

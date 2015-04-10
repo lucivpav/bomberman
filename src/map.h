@@ -5,6 +5,7 @@
 
 #include "block.h"
 #include "player.h"
+#include "pos.h"
 
 class Map
 {
@@ -18,22 +19,22 @@ public:
     };
 
     Map();
-    Map(const char * file); /* throws MapLoadException */
-    void load(const char * file); /* throws MapLoadException */
+    Map(const char * file, Pos & playerPos); /* throws MapLoadException */
+    void load(const char * file, Pos & playerPos); /* throws MapLoadException */
     ~Map();
 
     void draw();
-    void keyEvent(int key);
+
+    char & at(const Pos & pos);
 private:
     std::vector<char*> map;
+
     int width;
     int height() const;
     void clearMap();
 
     static const int maxWidth = 80;
     static const int maxHeight = 24;
-
-    Player player;
 };
 
 #endif

@@ -12,6 +12,7 @@ public:
     void setPos(const Pos & pos);
 private:
     Pos pos;
+    int maxBombs;
 };
 
 #endif

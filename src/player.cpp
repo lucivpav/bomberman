@@ -1,12 +1,14 @@
 #include "player.h"
 
 Player::Player()
+    :maxBombs(1)
 {
 
 }
 
 Player::Player(const Pos &p)
-    :pos(p)
+    :pos(p),
+      maxBombs(1)
 {
 
 }
