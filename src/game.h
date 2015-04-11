@@ -42,6 +42,8 @@ private:
     std::vector<Bomb> bombs;
     std::vector<Flame> flames;
 
+    bool expired;
+
     void loop();
     void keyEvent(int key);
     void drawStatus();

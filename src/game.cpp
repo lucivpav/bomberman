@@ -4,14 +4,8 @@
 #include <string>
 
 Game::Game()
+    :expired(false)
 {
-    initscr();
-    noecho();
-    keypad(stdscr, TRUE);
-    cbreak();
-    curs_set(FALSE);
-    timeout(33);
-
     Pos playerPos;
     map.load("levels/1", playerPos);
     player = new Player(playerPos, 3, 3);
@@ -21,19 +15,19 @@ Game::Game()
 Game::~Game()
 {
     delete player;
-    endwin();
 }
 
 void Game::loop()
 {
     while (1)
     {
+        if ( expired )
+            break;
         handleBombs();
         handleFlames();
         int c = getch();
-        if ( c == 'q' )
-            break;
-        keyEvent(c);
+        if ( c != ERR )
+            keyEvent(c);
         map.draw();
         drawStatus();
         refresh();
@@ -42,7 +36,11 @@ void Game::loop()
 
 void Game::keyEvent(int key)
 {
-    if ( key == KEY_DOWN || key == 's' )
+    if ( key == 'q' )
+    {
+        expired = true;
+    }
+    else if ( key == KEY_DOWN || key == 's' )
     {
         movePlayer(*player, Pos(0,1));
     }

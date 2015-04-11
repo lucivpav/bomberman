@@ -37,6 +37,8 @@ bool Player::plantBomb()
 
 void Player::addBomb()
 {
+    if ( bombsAvail == maxBombs )
+        maxBombs++;
     bombsAvail++;
 }
 

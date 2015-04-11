@@ -6,7 +6,7 @@ all: bomberman
 
 tests: test
 
-OBJECTS=map.o block.o game.o pos.o player.o
+OBJECTS=map.o block.o game.o pos.o player.o menu.o mainmenu.o
 
 bomberman: main.o $(OBJECTS)
 	$(CC) $(CFLAGS) main.o $(OBJECTS) -o bomberman $(LDFLAGS)
@@ -34,6 +34,12 @@ pos.o: src/pos.cpp
 
 player.o: src/player.cpp
 	$(CC) -c $(CFLAGS) src/player.cpp
+
+menu.o: src/menu.cpp
+	$(CC) -c $(CFLAGS) src/menu.cpp
+
+mainmenu.o: src/mainmenu.cpp
+	$(CC) -c $(CFLAGS) src/mainmenu.cpp
 
 clean:
 	rm *.o bomberman test

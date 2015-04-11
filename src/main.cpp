@@ -1,7 +1,7 @@
-#include "game.h"
+#include "mainmenu.h"
 
 int main(int argc, char ** argv)
 {
-    Game game;
+    MainMenu menu;
     return 0;
 }
