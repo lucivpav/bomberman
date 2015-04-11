@@ -1,16 +1,11 @@
 #include "player.h"
 
-Player::Player()
-    :maxBombs(1)
+Player::Player(const Pos &pos, int lives, int bombs)
+    : pos(pos),
+      lives(lives),
+      maxBombs(bombs),
+      bombsAvail(bombs)
 {
-
-}
-
-Player::Player(const Pos &p)
-    :pos(p),
-      maxBombs(1)
-{
-
 }
 
 
@@ -23,4 +18,24 @@ Pos Player::getPos() const
 void Player::setPos(const Pos &pos)
 {
     this->pos = pos;
+}
+
+
+void Player::die()
+{
+    if ( lives )
+        lives--;
+}
+
+bool Player::plantBomb()
+{
+    if ( !bombsAvail )
+        return false;
+    bombsAvail--;
+    return true;
+}
+
+void Player::addBomb()
+{
+   bombsAvail++;
 }

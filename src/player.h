@@ -6,13 +6,17 @@
 class Player
 {
 public:
-    Player();
-    Player(const Pos & p);
+    Player(const Pos & pos, int lives, int bombs);
     Pos getPos() const;
     void setPos(const Pos & pos);
+    void die();
+    bool plantBomb(); /* returns false if no bombs left */
+    void addBomb();
 private:
     Pos pos;
+    int lives;
     int maxBombs;
+    int bombsAvail;
 };
 
 #endif

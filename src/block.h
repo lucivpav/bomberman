@@ -9,7 +9,7 @@ public:
                PLAYER,
                DESTRUCTABLE,
                BOMB,
-               FIRE};
+               FLAME};
     static char typeToSymbol(Type t);
     static bool validSymbol(char symbol);
     static bool isSolid(char symbol);
