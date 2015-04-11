@@ -2,11 +2,14 @@
 #define GAME_H
 
 #include "map.h"
+#include "block.h"
+
+#include <map>
 
 class Bomb
 {
 public:
-    Bomb(const Pos & pos, int strength):_strength(strength),counter(90),pos(pos){}
+    Bomb(const Pos & pos, int strength):_strength(strength),counter(70),pos(pos){}
     bool shouldExplode() const { return !counter; }
     void newFrame() { if ( counter ) counter--; }
     Pos getPos() const { return pos; }
@@ -21,13 +24,23 @@ private:
 class Flame
 {
 public:
-    Flame(const Pos & pos):counter(15),pos(pos){}
+    Flame(const Pos & pos):counter(12),pos(pos){}
     Pos getPos() const { return pos; }
     bool timedOut() const { return !counter; }
     void newFrame() { if ( counter ) counter--; }
 private:
     int counter;
     Pos pos;
+};
+
+class Bonus
+{
+public:
+    Bonus(Block::Type type):_type(type){}
+    Block::Type type() const { return _type; }
+    static int key(const Pos & pos) { return (pos.x << 2) + pos.y; }
+private:
+    Block::Type _type;
 };
 
 class Game
@@ -41,6 +54,7 @@ private:
 
     std::vector<Bomb> bombs;
     std::vector<Flame> flames;
+    std::map<int, Bonus> bonuses;
 
     bool expired;
 

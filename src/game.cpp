@@ -2,6 +2,8 @@
 
 #include <ncurses.h>
 #include <string>
+#include <cstdlib>
+#include <ctime>
 
 Game::Game()
     :expired(false)
@@ -9,6 +11,7 @@ Game::Game()
     Pos playerPos;
     map.load("levels/1", playerPos);
     player = new Player(playerPos, 3, 3);
+    srand(time(0));
     loop();
 }
 
@@ -58,12 +61,15 @@ void Game::keyEvent(int key)
     }
     else if ( key == 'b' )
     {
+        bool planted;
         Pos p = player->getPos();
-        if ( map.at(p) == Block::typeToSymbol(Block::BOMB) ||
-             !player->plantBomb() )
+        if ( map.at(p) == Block::typeToSymbol(Block::BOMB) )
+            return;
+        Bomb bomb = player->plantBomb(planted);
+        if ( !planted )
             return;
         map.at(p) = Block::typeToSymbol(Block::BOMB);
-        bombs.push_back(Bomb(p, 3));
+        bombs.push_back(bomb);
     }
 }
 
@@ -87,6 +93,29 @@ void Game::movePlayer(Player &p, const Pos & offset)
     Pos newPos(curPos.x+offset.x, curPos.y+offset.y);
     if ( Block::isSolid(map.at(newPos)) )
         return;
+
+    Block::Type newPosType = Block::symbolToType(map.at(newPos));
+    if ( newPosType >= Block::BONUS_BOMB &&
+         newPosType <= Block::BONUS_RADIUS )
+    {
+        if ( newPosType == Block::BONUS_BOMB )
+        {
+            player->addBomb();
+        }
+        else if ( newPosType == Block::BONUS_SPEED )
+        {
+
+        }
+        else if ( newPosType == Block::BONUS_REMOTE )
+        {
+
+        }
+        else // BONUS_RADIUS
+        {
+            player->upgradeBombRadius();
+        }
+        bonuses.erase(Bonus::key(newPos));
+    }
 
     if ( map.at(curPos) != Block::typeToSymbol(Block::BOMB) )
         map.at(curPos) = Block::typeToSymbol(Block::EMPTY);
@@ -145,7 +174,7 @@ void Game::genFlames(Pos from, const Pos & to)
     Pos diff;
     if ( from.x < to.x )
         diff = Pos(1, 0);
-    else if ( from.x > to.y )
+    else if ( from.x > to.x )
         diff = Pos(-1, 0);
     else if ( from.y < to.y )
         diff = Pos(0, 1);
@@ -163,8 +192,18 @@ void Game::genFlames(Pos from, const Pos & to)
         }
         else if ( symbol == Block::typeToSymbol(Block::DESTRUCTABLE) )
         {
-            flames.push_back(Flame(from));
-            symbol = Block::typeToSymbol(Block::FLAME);
+            if ( rand() % 5 == 0 )
+            {
+                int key = Bonus::key(from);
+                int type = rand() % 4 + Block::BONUS_BOMB;
+                bonuses.insert(std::make_pair(key, Bonus((Block::Type)type)));
+                symbol = Block::typeToSymbol(Block::Type(type));
+            }
+            else
+            {
+                flames.push_back(Flame(from));
+                symbol = Block::typeToSymbol(Block::FLAME);
+            }
             break;
         }
         else if ( Block::isSolid(symbol) )

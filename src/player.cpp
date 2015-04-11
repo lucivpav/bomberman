@@ -1,10 +1,13 @@
 #include "player.h"
 
+#include "game.h" // bomb
+
 Player::Player(const Pos &pos, int lives, int bombs)
     : pos(pos),
       lives(lives),
       maxBombs(bombs),
-      bombsAvail(bombs)
+      bombsAvail(bombs),
+      bombRadius(3)
 {
 }
 
@@ -27,12 +30,13 @@ void Player::die()
         lives--;
 }
 
-bool Player::plantBomb()
+Bomb Player::plantBomb(bool & success)
 {
     if ( !bombsAvail )
-        return false;
+        success = false;
     bombsAvail--;
-    return true;
+    success = true;
+    return Bomb(pos, bombRadius);
 }
 
 void Player::addBomb()
@@ -50,4 +54,15 @@ int Player::getLives() const
 int Player::getBombsAvail() const
 {
     return bombsAvail;
+}
+
+void Player::upgradeBombRadius()
+{
+    if ( bombRadius < 100 )
+        bombRadius++;
+}
+
+void Player::defaultBombRadius()
+{
+    bombRadius = 3;
 }

@@ -45,7 +45,7 @@ void Menu::keyEvent(int key)
 
     if ( key == KEY_DOWN || key == 's' )
     {
-        if ( pos < items.size() )
+        if ( pos < (int)items.size() )
             pos++;
     }
     else if ( key == KEY_UP || key == 'w' )
