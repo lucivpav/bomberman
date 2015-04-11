@@ -44,6 +44,7 @@ private:
 
     void loop();
     void keyEvent(int key);
+    void drawStatus();
 
     void movePlayer(Player &p, const Pos &offset);
     void handleBombs();

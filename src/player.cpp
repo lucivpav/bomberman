@@ -37,5 +37,15 @@ bool Player::plantBomb()
 
 void Player::addBomb()
 {
-   bombsAvail++;
+    bombsAvail++;
+}
+
+int Player::getLives() const
+{
+    return lives;
+}
+
+int Player::getBombsAvail() const
+{
+    return bombsAvail;
 }

@@ -12,6 +12,8 @@ public:
     void die();
     bool plantBomb(); /* returns false if no bombs left */
     void addBomb();
+    int getLives() const;
+    int getBombsAvail() const;
 private:
     Pos pos;
     int lives;

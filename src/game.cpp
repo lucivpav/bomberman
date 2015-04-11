@@ -1,6 +1,7 @@
 #include "game.h"
 
 #include <ncurses.h>
+#include <string>
 
 Game::Game()
 {
@@ -34,6 +35,7 @@ void Game::loop()
             break;
         keyEvent(c);
         map.draw();
+        drawStatus();
         refresh();
     }
 }
@@ -65,6 +67,20 @@ void Game::keyEvent(int key)
         map.at(p) = Block::typeToSymbol(Block::BOMB);
         bombs.push_back(Bomb(p, 3));
     }
+}
+
+void Game::drawStatus()
+{
+    int width, height;
+    getmaxyx(stdscr, height, width);
+
+    std::string status =
+            "LIVES: " +
+            std::to_string(player->getLives()) +
+            " BOMBS: " +
+            std::to_string(player->getBombsAvail());
+
+    mvprintw(height-1, 0, status.c_str());
 }
 
 void Game::movePlayer(Player &p, const Pos & offset)
