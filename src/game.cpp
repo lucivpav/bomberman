@@ -5,13 +5,14 @@
 #include <cstdlib>
 #include <ctime>
 #include <chrono>
+#include <cassert>
 
 Game::Game()
     :expired(false)
 {
     Pos playerPos;
     map.load("levels/1", playerPos);
-    player = new Player(playerPos, 3, 3);
+    player = new Player(this, playerPos, 3, 3);
     srand(time(0));
     loop();
 }
@@ -101,11 +102,8 @@ void Game::keyEvent(int key)
     }
     else if ( key == ' ' )
     {
-        if ( !player->hasRemoteBombBonus() )
-            return;
-        auto bombs = player->detonateRemoteBombs();
-        for ( const auto & bomb : bombs )
-            bombExplosion(bomb);
+        if ( player->hasRemoteBombBonus() )
+            player->detonateRemoteBombs();
     }
 }
 
@@ -162,7 +160,7 @@ void Game::movePlayer(Player &p, const Pos & offset)
 
 void Game::handleBombs()
 {
-    for ( std::vector<TimedBomb>::iterator it = timedBombs.begin();
+    for ( auto it = timedBombs.begin();
           it != timedBombs.end(); )
     {
         it->newFrame();
@@ -179,7 +177,7 @@ void Game::handleBombs()
 
 void Game::handleFlames()
 {
-    for ( std::vector<Flame>::iterator it = flames.begin();
+    for ( auto it = flames.begin();
           it != flames.end(); )
     {
         it->newFrame();
@@ -247,6 +245,24 @@ void Game::genFlames(Pos from, const Pos & to)
                 symbol = Block::typeToSymbol(Block::FLAME);
             }
             break;
+        }
+        else if ( symbol == Block::typeToSymbol(Block::TIMED_BOMB)
+                  || symbol == Block::typeToSymbol(Block::REMOTE_BOMB) )
+        {
+            for ( auto it = timedBombs.begin();
+                  it != timedBombs.end();
+                  it++ )
+                if ( it->getPos() == from )
+                {
+                    bombExplosion(*it);
+                    player->addBomb();
+                    timedBombs.erase(it);
+                    return;
+                }
+            if ( player->detonateRemoteBomb(from) )
+                return;
+            else
+                assert ( false );
         }
         else if ( Block::isSolid(symbol) )
             break;

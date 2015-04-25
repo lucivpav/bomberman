@@ -2,8 +2,9 @@
 
 #include "game.h" // bomb
 
-Player::Player(const Pos &pos, int lives, int bombs)
-    : pos(pos),
+Player::Player(Game *g, const Pos &pos, int lives, int bombs)
+    : game(g),
+      pos(pos),
       lives(lives),
       maxBombs(bombs),
       bombsAvail(bombs),
@@ -13,23 +14,23 @@ Player::Player(const Pos &pos, int lives, int bombs)
 {
 }
 
-
 Pos Player::getPos() const
 {
     return pos;
 }
-
 
 void Player::setPos(const Pos &pos)
 {
     this->pos = pos;
 }
 
-
 void Player::die()
 {
-    if ( lives )
-        lives--;
+    if ( !lives )
+        return;
+    lives--;
+    if ( remoteBombBonus )
+        detonateRemoteBombs();
 }
 
 bool Player::plantBomb(Bomb & b)
@@ -52,12 +53,27 @@ bool Player::plantRemoteBomb()
     return true;
 }
 
-std::vector<RemoteBomb> Player::detonateRemoteBombs()
+void Player::detonateRemoteBombs()
 {
-    std::vector<RemoteBomb> toReturn = remoteBombs;
+    for ( const auto & bomb : remoteBombs )
+        game->bombExplosion(bomb);
     bombsAvail += remoteBombs.size();
     remoteBombs.clear();
-    return toReturn;
+}
+
+bool Player::detonateRemoteBomb(const Pos &p)
+{
+    for ( auto it = remoteBombs.begin();
+          it != remoteBombs.end();
+          it++ )
+        if ( it->getPos() == p )
+        {
+            game->bombExplosion(*it);
+            bombsAvail++;
+            remoteBombs.erase(it);
+            return true;
+        }
+    return false;
 }
 
 void Player::setRemoteBombBonus(bool enable)

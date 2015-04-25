@@ -23,6 +23,8 @@ class Game
 public:
     Game();
     ~Game();
+
+    void bombExplosion(const Bomb & b);
 private:
     Map map;
     Player * player;
@@ -40,7 +42,6 @@ private:
     void movePlayer(Player &p, const Pos &offset);
     void handleBombs();
     void handleFlames();
-    void bombExplosion(const Bomb & b);
     void genFlames(Pos from, const Pos &to);
 
     std::chrono::milliseconds getTimestamp() const;

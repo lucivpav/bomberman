@@ -7,18 +7,20 @@
 #include <vector>
 
 class Bomb;
+class Game;
 
 class Player
 {
 public:
-    Player(const Pos & pos, int lives, int bombs);
+    Player(Game * g, const Pos & pos, int lives, int bombs);
     Pos getPos() const;
     void setPos(const Pos & pos);
     void die();
 
     bool plantBomb(Bomb &b); /* returns false if no bombs left */
     bool plantRemoteBomb();
-    std::vector<RemoteBomb> detonateRemoteBombs();
+    void detonateRemoteBombs();
+    bool detonateRemoteBomb(const Pos & p);
     void setRemoteBombBonus(bool enable);
     bool hasRemoteBombBonus() const;
     void addBomb();
@@ -30,6 +32,8 @@ public:
     void setSpeedBonus(bool enable);
     bool hasSpeedBonus() const;
 private:
+    Game * game;
+
     Pos pos;
     int lives;
     int maxBombs;
