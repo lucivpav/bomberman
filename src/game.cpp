@@ -4,6 +4,7 @@
 #include <string>
 #include <cstdlib>
 #include <ctime>
+#include <chrono>
 
 Game::Game()
     :expired(false)
@@ -39,34 +40,51 @@ void Game::loop()
 
 void Game::keyEvent(int key)
 {
+    static bool moveButtonPressed = false;
+    bool moveButtonHold = false;
+
+    // not holding on first iteration
+    static auto timestamp = getTimestamp() - std::chrono::milliseconds(1000);
+    auto currentTimestamp = getTimestamp();
+
+    moveButtonHold = (currentTimestamp - timestamp).count() < 100;
+    timestamp = currentTimestamp;
+
     if ( key == 'q' )
     {
         expired = true;
     }
     else if ( key == KEY_DOWN || key == 's' )
     {
-        movePlayer(*player, Pos(0,1));
+        if ( !moveButtonHold || moveButtonPressed || player->hasSpeedBonus() )
+            movePlayer(*player, Pos(0,1));
+        moveButtonPressed = !moveButtonPressed;
     }
     else if ( key == KEY_UP || key == 'w' )
     {
-        movePlayer(*player, Pos(0,-1));
+        if ( !moveButtonHold || moveButtonPressed || player->hasSpeedBonus() )
+            movePlayer(*player, Pos(0,-1));
+        moveButtonPressed = !moveButtonPressed;
     }
     else if ( key == KEY_LEFT || key == 'a' )
     {
-        movePlayer(*player, Pos(-1,0));
+        if ( !moveButtonHold || moveButtonPressed || player->hasSpeedBonus() )
+            movePlayer(*player, Pos(-1,0));
+        moveButtonPressed = !moveButtonPressed;
     }
     else if ( key == KEY_RIGHT || key == 'd' )
     {
-        movePlayer(*player, Pos(1,0));
+        if ( !moveButtonHold || moveButtonPressed || player->hasSpeedBonus() )
+            movePlayer(*player, Pos(1,0));
+        moveButtonPressed = !moveButtonPressed;
     }
     else if ( key == 'b' )
     {
-        bool planted;
         Pos p = player->getPos();
         if ( map.at(p) == Block::typeToSymbol(Block::BOMB) )
             return;
-        Bomb bomb = player->plantBomb(planted);
-        if ( !planted )
+        Bomb bomb;
+        if ( !player->plantBomb(bomb) )
             return;
         map.at(p) = Block::typeToSymbol(Block::BOMB);
         bombs.push_back(bomb);
@@ -100,11 +118,11 @@ void Game::movePlayer(Player &p, const Pos & offset)
     {
         if ( newPosType == Block::BONUS_BOMB )
         {
-            player->addBomb();
+            p.addBomb();
         }
         else if ( newPosType == Block::BONUS_SPEED )
         {
-
+            p.setSpeedBonus(true);
         }
         else if ( newPosType == Block::BONUS_REMOTE )
         {
@@ -112,7 +130,7 @@ void Game::movePlayer(Player &p, const Pos & offset)
         }
         else // BONUS_RADIUS
         {
-            player->upgradeBombRadius();
+            p.upgradeBombRadius();
         }
         bonuses.erase(Bonus::key(newPos));
     }
@@ -214,4 +232,10 @@ void Game::genFlames(Pos from, const Pos & to)
             symbol = Block::typeToSymbol(Block::FLAME);
         }
     }
+}
+
+std::chrono::milliseconds Game::getTimestamp() const
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>
+            (std::chrono::system_clock::now().time_since_epoch());
 }

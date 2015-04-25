@@ -7,7 +7,8 @@ Player::Player(const Pos &pos, int lives, int bombs)
       lives(lives),
       maxBombs(bombs),
       bombsAvail(bombs),
-      bombRadius(3)
+      bombRadius(3),
+      speedBonus(false)
 {
 }
 
@@ -30,13 +31,14 @@ void Player::die()
         lives--;
 }
 
-Bomb Player::plantBomb(bool & success)
+bool Player::plantBomb(Bomb & b)
 {
     if ( !bombsAvail )
-        success = false;
+        return false;
     bombsAvail--;
-    success = true;
-    return Bomb(pos, bombRadius);
+    b.setPos(pos);
+    b.setStrength(bombRadius);
+    return true;
 }
 
 void Player::addBomb()
@@ -65,4 +67,14 @@ void Player::upgradeBombRadius()
 void Player::defaultBombRadius()
 {
     bombRadius = 3;
+}
+
+void Player::setSpeedBonus(bool enable)
+{
+    speedBonus = enable;
+}
+
+bool Player::hasSpeedBonus() const
+{
+    return speedBonus;
 }
