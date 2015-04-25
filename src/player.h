@@ -2,6 +2,9 @@
 #define PLAYER_H
 
 #include "pos.h"
+#include "bomb.h"
+
+#include <vector>
 
 class Bomb;
 
@@ -12,8 +15,14 @@ public:
     Pos getPos() const;
     void setPos(const Pos & pos);
     void die();
+
     bool plantBomb(Bomb &b); /* returns false if no bombs left */
+    bool plantRemoteBomb();
+    std::vector<RemoteBomb> detonateRemoteBombs();
+    void setRemoteBombBonus(bool enable);
+    bool hasRemoteBombBonus() const;
     void addBomb();
+
     int getLives() const;
     int getBombsAvail() const;
     void upgradeBombRadius();
@@ -27,6 +36,9 @@ private:
     int bombsAvail;
     int bombRadius;
     bool speedBonus;
+    bool remoteBombBonus;
+
+    std::vector<RemoteBomb> remoteBombs;
 };
 
 #endif

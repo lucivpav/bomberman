@@ -81,13 +81,31 @@ void Game::keyEvent(int key)
     else if ( key == 'b' )
     {
         Pos p = player->getPos();
-        if ( map.at(p) == Block::typeToSymbol(Block::BOMB) )
+        if ( Block::symbolToType(map.at(p)) != Block::PLAYER
+             && Block::isSolid(map.at(p)) )
             return;
-        Bomb bomb;
-        if ( !player->plantBomb(bomb) )
+        if ( player->hasRemoteBombBonus() )
+        {
+            if ( !player->plantRemoteBomb() )
+                return;
+            map.at(p) = Block::typeToSymbol(Block::REMOTE_BOMB);
+        }
+        else
+        {
+            TimedBomb bomb;
+            if ( !player->plantBomb(bomb) )
+                return;
+            map.at(p) = Block::typeToSymbol(Block::TIMED_BOMB);
+            timedBombs.push_back(bomb);
+        }
+    }
+    else if ( key == ' ' )
+    {
+        if ( !player->hasRemoteBombBonus() )
             return;
-        map.at(p) = Block::typeToSymbol(Block::BOMB);
-        bombs.push_back(bomb);
+        auto bombs = player->detonateRemoteBombs();
+        for ( const auto & bomb : bombs )
+            bombExplosion(bomb);
     }
 }
 
@@ -126,7 +144,7 @@ void Game::movePlayer(Player &p, const Pos & offset)
         }
         else if ( newPosType == Block::BONUS_REMOTE )
         {
-
+            p.setRemoteBombBonus(true);
         }
         else // BONUS_RADIUS
         {
@@ -135,7 +153,8 @@ void Game::movePlayer(Player &p, const Pos & offset)
         bonuses.erase(Bonus::key(newPos));
     }
 
-    if ( map.at(curPos) != Block::typeToSymbol(Block::BOMB) )
+    if ( map.at(curPos) != Block::typeToSymbol(Block::TIMED_BOMB)
+         && map.at(curPos) != Block::typeToSymbol(Block::REMOTE_BOMB) )
         map.at(curPos) = Block::typeToSymbol(Block::EMPTY);
     map.at(newPos) = Block::typeToSymbol(Block::PLAYER);
     p.setPos(newPos);
@@ -143,23 +162,15 @@ void Game::movePlayer(Player &p, const Pos & offset)
 
 void Game::handleBombs()
 {
-    for ( std::vector<Bomb>::iterator it = bombs.begin();
-          it != bombs.end(); )
+    for ( std::vector<TimedBomb>::iterator it = timedBombs.begin();
+          it != timedBombs.end(); )
     {
         it->newFrame();
         if ( it->shouldExplode() )
         {
-            Pos bombPos = it->getPos();
-            int strength = it->strength();
             player->addBomb();
-            it = bombs.erase(it);
-
-            flames.push_back(Flame(bombPos));
-            map.at(bombPos) = Block::typeToSymbol(Block::FLAME);
-            genFlames(bombPos + Pos(1, 0), bombPos + Pos(strength, 0));
-            genFlames(bombPos + Pos(-1, 0), bombPos + Pos(-strength, 0));
-            genFlames(bombPos + Pos(0, 1), bombPos + Pos(0, strength));
-            genFlames(bombPos + Pos(0, -1), bombPos + Pos(0, -strength));
+            bombExplosion(*it);
+            it = timedBombs.erase(it);
             continue;
         }
         it++;
@@ -185,6 +196,19 @@ void Game::handleFlames()
         it++;
     }
 }
+
+void Game::bombExplosion(const Bomb & b)
+{
+    Pos bombPos = b.getPos();
+    int radius = b.getRadius();
+    flames.push_back(Flame(bombPos));
+    map.at(bombPos) = Block::typeToSymbol(Block::FLAME);
+    genFlames(bombPos + Pos(1, 0), bombPos + Pos(radius, 0));
+    genFlames(bombPos + Pos(-1, 0), bombPos + Pos(-radius, 0));
+    genFlames(bombPos + Pos(0, 1), bombPos + Pos(0, radius));
+    genFlames(bombPos + Pos(0, -1), bombPos + Pos(0, -radius));
+}
+
 void Game::genFlames(Pos from, const Pos & to)
 {
     //todo asserts
