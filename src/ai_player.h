@@ -25,10 +25,10 @@ private:
     int moveUtility(const Pos & offset) const;
 
     int plantBombUtility() const;
-    bool canFlee() const;
-    bool canFleeDirection(Pos offset) const;
-    bool isBombSafe(Pos location) const;
-    bool bombSafeDirection(const Pos &location, const Pos &offset) const;
+    bool canFlee(const Bomb &threat) const;
+    bool canFleeDirection(const Bomb & threat, Pos offset) const;
+    const Bomb * bombThreat(Pos location) const;
+    const Bomb *bombThreatDirection(const Pos &location, const Pos &offset) const;
     int wallsToBeDestroyed() const;
     bool wallToBeDestroyedDirection(const Pos & offset) const;
 

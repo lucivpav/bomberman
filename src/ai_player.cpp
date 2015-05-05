@@ -45,20 +45,22 @@ AIPlayer::Action AIPlayer::getBestAction()
 {
     Action action;
     int utility = 0;
-    updateBestAction(Action::IDLE, action, utility);
-    if ( utility == 0 ) // bomb threat
+
+    const Bomb * threat = bombThreat(getPos());
+    if ( threat )
     {
-        if ( canFleeDirection(Pos(1, 0)) )
+        if ( canFleeDirection(*threat, Pos(1, 0)) )
             return MOVE_RIGHT;
-        if ( canFleeDirection(Pos(-1, 0)) )
+        if ( canFleeDirection(*threat, Pos(-1, 0)) )
             return MOVE_LEFT;
-        if ( canFleeDirection(Pos(0, 1)) )
+        if ( canFleeDirection(*threat, Pos(0, 1)) )
             return MOVE_DOWN;
-        if ( canFleeDirection(Pos(0, -1)) )
+        if ( canFleeDirection(*threat, Pos(0, -1)) )
             return MOVE_UP;
         updateBestAction(DETONATE_BOMBS, action, utility);
         return action;
     }
+    updateBestAction(Action::IDLE, action, utility);
     updateBestAction(MOVE_LEFT, action, utility);
     updateBestAction(MOVE_RIGHT, action, utility);
     updateBestAction(MOVE_UP, action, utility);
@@ -110,21 +112,23 @@ int AIPlayer::airDistance(const Pos &a, const Pos &b) const
 
 int AIPlayer::idleUtility() const
 {
-    if ( !isBombSafe(getPos()) )
+    if ( !bombThreat(getPos()) )
         return 0;
     return 200 - manhattanDistance(getPos(), enemy->getPos());
 }
 
 int AIPlayer::moveUtility(const Pos &offset) const
 {
-    if ( !game->canMovePlayer(getPos() + offset) )
+    Pos pos = getPos() + offset;
+    if ( !game->canMovePlayer(pos) || bombThreat(pos) )
         return 0;
     return 200 - manhattanDistance(getPos() + offset, enemy->getPos());
 }
 
 int AIPlayer::plantBombUtility() const
 {
-    if ( !game->canPlantBomb(*this) || !canFlee() )
+    if ( !game->canPlantBomb(*this)
+         || !canFlee(Bomb(0, getPos(), getBombRadius())) )
         return 0;
     int dist = airDistance(getPos(), enemy->getPos());
     if ( dist < getBombRadius() )
@@ -132,19 +136,19 @@ int AIPlayer::plantBombUtility() const
     return wallsToBeDestroyed() * 160;
 }
 
-bool AIPlayer::canFlee() const
+bool AIPlayer::canFlee(const Bomb & threat) const
 {
-    return canFleeDirection(Pos(-1, 0))
-           || canFleeDirection(Pos(1, 0))
-           || canFleeDirection(Pos(0, 1))
-           || canFleeDirection(Pos(0, -1));
+    return canFleeDirection(threat, Pos(-1, 0))
+           || canFleeDirection(threat, Pos(1, 0))
+           || canFleeDirection(threat, Pos(0, 1))
+           || canFleeDirection(threat, Pos(0, -1));
 }
 
-bool AIPlayer::canFleeDirection(Pos offset) const
+bool AIPlayer::canFleeDirection(const Bomb &threat,
+                                Pos offset) const
 {
-    int bombRadius = getBombRadius();
     Pos playerPos = getPos();
-    for ( int i = 0 ; ; i++ )
+    while(1)
     {
         playerPos += offset;
         Pos side = Pos(offset.y, offset.x) + playerPos;
@@ -152,57 +156,51 @@ bool AIPlayer::canFleeDirection(Pos offset) const
 
         if ( !game->canMovePlayer(playerPos) )
             return false;
-        if ( isBombSafe(playerPos) )
+        if ( !bombThreat(playerPos) )
         {
-            char symbol = game->getMap().get(getPos());
-            if ( symbol == Block::typeToSymbol(Block::TIMED_BOMB)
-                 || symbol == Block::typeToSymbol(Block::REMOTE_BOMB) )
+            if ( playerPos.x == threat.getPos().x
+                 || playerPos.y == threat.getPos().y )
             {
-                if ( i > bombRadius )
+                if ( manhattanDistance(playerPos, threat.getPos()) > getBombRadius() )
                     return true;
             }
-            return true;
+            else
+                return true;
         }
-        if ( (game->canMovePlayer(side) && isBombSafe(side))
-             || (game->canMovePlayer(side2) && isBombSafe(side2)) )
+        if ( (game->canMovePlayer(side) && !bombThreat(side))
+             || (game->canMovePlayer(side2) && !bombThreat(side2)) )
             return true;
     }
 }
 
-bool AIPlayer::isBombSafe(Pos location) const
+const Bomb * AIPlayer::bombThreat(Pos location) const
 {
     Block::Type curBlock = Block::symbolToType(game->getMap().get(location));
-    if ( curBlock != Block::TIMED_BOMB
-         && curBlock != Block::REMOTE_BOMB
-         && bombSafeDirection(location, Pos(1, 0))
-         && bombSafeDirection(location, Pos(-1, 0))
-         && bombSafeDirection(location, Pos(0, 1))
-         && bombSafeDirection(location, Pos(0, -1)) )
-        return true;
-    return false;
+    const Bomb * bomb = 0;
+    if ( curBlock == Block::TIMED_BOMB || curBlock == Block::REMOTE_BOMB )
+        return game->getBomb(getPos());
+    bomb = bombThreatDirection(location, Pos(1, 0));
+    if ( bomb ) return bomb;
+    bomb = bombThreatDirection(location, Pos(-1, 0));
+    if ( bomb ) return bomb;
+    bomb = bombThreatDirection(location, Pos(0, 1));
+    if ( bomb ) return bomb;
+    return bombThreatDirection(location, Pos(0, -1));
 }
 
-bool AIPlayer::bombSafeDirection(const Pos & location, const Pos & offset) const
+const Bomb * AIPlayer::bombThreatDirection(const Pos & location, const Pos & offset) const
 {
     Pos pos = location;
-    for ( int i = 1 ; ; i++ )
+    while(1)
     {
         pos += offset;
         char block = game->getMap().get(pos);
         if ( !Block::isSolid(block) )
             continue;
-
-        if ( block == Block::typeToSymbol(Block::TIMED_BOMB) )
-        {
-            const TimedBomb & b = game->getTimedBomb(pos);
-            return i > b.getRadius();
-        }
-        else if (block == Block::typeToSymbol(Block::REMOTE_BOMB) )
-        {
-            return !enemy->hasRemoteBomb(pos);
-        }
-        else /* no bomb */
-            return true;
+        const Bomb * b = game->getBomb(pos);
+        if ( !b ) return 0;
+        return manhattanDistance(location, b->getPos())
+                > b->getRadius() ? 0 : b;
     }
 }
 

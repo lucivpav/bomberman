@@ -61,6 +61,16 @@ void Player::detonateRemoteBombs()
     remoteBombs.clear();
 }
 
+const RemoteBomb * Player::getRemoteBomb(const Pos &p) const
+{
+    for ( auto it = remoteBombs.begin();
+          it != remoteBombs.end();
+          it++ )
+        if ( it->getPos() == p )
+            return &*it;
+    return 0;
+}
+
 bool Player::detonateRemoteBomb(const Pos &p)
 {
     for ( auto it = remoteBombs.begin();
@@ -91,18 +101,6 @@ void Player::addBomb()
     if ( bombsAvail == maxBombs )
         maxBombs++;
     bombsAvail++;
-}
-
-bool Player::hasRemoteBomb(const Pos &p) const
-{
-    for ( auto it = remoteBombs.begin();
-          it != remoteBombs.end();
-          it++ )
-        if ( it->getPos() == p )
-        {
-            return true;
-        }
-    return false;
 }
 
 int Player::getLives() const

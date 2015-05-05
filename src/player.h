@@ -21,11 +21,11 @@ public:
     bool plantBomb(Bomb &b); /* returns false if no bombs left */
     bool plantRemoteBomb();
     void detonateRemoteBombs();
+    const RemoteBomb * getRemoteBomb(const Pos & p) const;
     bool detonateRemoteBomb(const Pos & p);
     void setRemoteBombBonus(bool enable);
     bool hasRemoteBombBonus() const;
     void addBomb();
-    bool hasRemoteBomb(const Pos & p) const;
 
     int getLives() const;
     int getBombsAvail() const;

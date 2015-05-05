@@ -192,6 +192,21 @@ const Map &Game::getMap() const
     return map;
 }
 
+const Bomb * Game::getBomb(const Pos &p) const
+{
+    for ( auto it = timedBombs.begin();
+          it != timedBombs.end();
+          it++ )
+    {
+        if ( it->getPos() == p )
+            return &*it;
+    }
+    const Bomb * b = player->getRemoteBomb(p);
+    if ( b )
+        return b;
+    return enemy->getRemoteBomb(p);
+}
+
 const TimedBomb &Game::getTimedBomb(const Pos &p) const
 {
     for ( auto it = timedBombs.begin();
@@ -312,6 +327,7 @@ void Game::genFlames(Pos from, const Pos & to)
         else if ( symbol == Block::typeToSymbol(Block::TIMED_BOMB)
                   || symbol == Block::typeToSymbol(Block::REMOTE_BOMB) )
         {
+            /* todo: simplify using getBomb() */
             for ( auto it = timedBombs.begin();
                   it != timedBombs.end();
                   it++ )

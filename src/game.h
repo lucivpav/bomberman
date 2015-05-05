@@ -32,6 +32,7 @@ public:
     bool canMovePlayer(const Pos & where) const;
     void movePlayer(Player &p, const Pos &offset);
     const Map & getMap() const;
+    const Bomb * getBomb(const Pos & p) const;
     const TimedBomb & getTimedBomb(const Pos & p) const;
 private:
     Map map;
