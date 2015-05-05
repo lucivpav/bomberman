@@ -48,7 +48,7 @@ bool Player::plantRemoteBomb()
     if ( !bombsAvail || !remoteBombBonus )
         return false;
     bombsAvail--;
-    RemoteBomb b(pos, bombRadius);
+    RemoteBomb b(this, pos, bombRadius);
     remoteBombs.push_back(b);
     return true;
 }
@@ -93,6 +93,18 @@ void Player::addBomb()
     bombsAvail++;
 }
 
+bool Player::hasRemoteBomb(const Pos &p) const
+{
+    for ( auto it = remoteBombs.begin();
+          it != remoteBombs.end();
+          it++ )
+        if ( it->getPos() == p )
+        {
+            return true;
+        }
+    return false;
+}
+
 int Player::getLives() const
 {
     return lives;
@@ -122,4 +134,19 @@ void Player::setSpeedBonus(bool enable)
 bool Player::hasSpeedBonus() const
 {
     return speedBonus;
+}
+
+char Player::getSymbol() const
+{
+    return Block::typeToSymbol(Block::PLAYER);
+}
+
+int Player::getBombRadius() const
+{
+    return bombRadius;
+}
+
+Player::~Player()
+{
+
 }

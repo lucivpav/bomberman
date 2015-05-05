@@ -19,18 +19,21 @@ public:
     };
 
     Map();
-    Map(const char * file, Pos & playerPos); /* throws MapLoadException */
-    void load(const char * file, Pos & playerPos); /* throws MapLoadException */
+    Map(const char * file, Pos & playerPos, Pos & enemyPos); /* throws MapLoadException */
+    void load(const char * file, Pos & playerPos, Pos & enemyPos); /* throws MapLoadException */
     ~Map();
 
     void draw();
 
     char & at(const Pos & pos);
+    const char & get(const Pos & pos) const;
+
+    int width() const;
+    int height() const;
 private:
     std::vector<char*> map;
 
-    int width;
-    int height() const;
+    int mWidth;
     void clearMap();
 
     static const int maxWidth = 80;

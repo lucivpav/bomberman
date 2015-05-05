@@ -7,12 +7,12 @@ Map::Map()
 {
 }
 
-Map::Map(const char *file, Pos & playerPos)
+Map::Map(const char *file, Pos & playerPos, Pos &enemyPos)
 {
-    load(file, playerPos);
+    load(file, playerPos, enemyPos);
 }
 
-void Map::load(const char *file, Pos & playerPos)
+void Map::load(const char *file, Pos & playerPos, Pos &enemyPos)
 {
     const char LF = 10, CR = 13;
     enum Encoding {UNIX, DOS, MAC};
@@ -59,12 +59,12 @@ void Map::load(const char *file, Pos & playerPos)
     }
 
     /* check first line */
-    width = line.size();
-    if ( width < 3 || width > maxWidth )
+    mWidth = line.size();
+    if ( mWidth < 3 || mWidth > maxWidth )
         throw MapLoadException(MapLoadException::INVALID_MAP);
 
-    map.push_back(new char[width+1]);
-    map[0][width] = '\0';
+    map.push_back(new char[mWidth+1]);
+    map[0][mWidth] = '\0';
     for ( size_t i = 0 ; i < line.size() ; i++ )
     {
         map[0][i] = Block::typeToSymbol(Block::WALL);
@@ -75,6 +75,7 @@ void Map::load(const char *file, Pos & playerPos)
     /* load map */
     int i;
     bool playerFound = false;
+    bool enemyFound = false;
     for ( i = 1 ; ; i++ )
     {
         getline(f, line, encoding == Encoding::UNIX ? LF : CR);
@@ -91,13 +92,13 @@ void Map::load(const char *file, Pos & playerPos)
                 throw MapLoadException(MapLoadException::READ_FAILURE);
         }
 
-        if ( (int)line.size() != width ||
+        if ( (int)line.size() != mWidth ||
              line[0] != Block::typeToSymbol(Block::WALL) ||
              line.back() != Block::typeToSymbol(Block::WALL) )
             throw MapLoadException(MapLoadException::INVALID_MAP);
 
-        map.push_back(new char[width+1]);
-        map.back()[width] = '\0';
+        map.push_back(new char[mWidth+1]);
+        map.back()[mWidth] = '\0';
         for ( size_t j = 0 ; j < line.size() ; j++ )
         {
             char c = line[j];
@@ -109,16 +110,23 @@ void Map::load(const char *file, Pos & playerPos)
                 if ( playerFound ) /* player duplication */
                     throw MapLoadException(MapLoadException::INVALID_MAP);
                 playerFound = true;
-                playerPos = Pos(i, j);
+                playerPos = Pos(j, i);
+            }
+            else if ( c == Block::typeToSymbol(Block::ENEMY) )
+            {
+                if ( enemyFound ) /* enemy duplication */
+                    throw MapLoadException(MapLoadException::INVALID_MAP);
+                enemyFound = true;
+                enemyPos = Pos(j, i);
             }
         }
     }
 
-    if ( i < 3 || !playerFound )
+    if ( i < 3 || !playerFound || !enemyFound)
         throw MapLoadException(MapLoadException::INVALID_MAP);
 
     /* check last line */
-    for ( int i = 1 ; i < width-1 ; i++ )
+    for ( int i = 1 ; i < mWidth-1 ; i++ )
     {
         if ( map.back()[i] != Block::typeToSymbol(Block::WALL) )
             throw MapLoadException(MapLoadException::INVALID_MAP);
@@ -140,6 +148,16 @@ void Map::draw()
 char & Map::at(const Pos &pos)
 {
     return map[pos.y][pos.x];
+}
+
+const char &Map::get(const Pos &pos) const
+{
+    return map[pos.y][pos.x];
+}
+
+int Map::width() const
+{
+    return mWidth;
 }
 
 int Map::height() const

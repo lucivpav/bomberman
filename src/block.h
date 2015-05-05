@@ -7,10 +7,11 @@ public:
     enum Type { EMPTY = 0,
                 WALL,
                 PLAYER,
+                ENEMY,
                 DESTRUCTABLE,
                 TIMED_BOMB,
                 FLAME,
-                BONUS_BOMB = 6,
+                BONUS_BOMB = 7,
                 BONUS_SPEED,
                 BONUS_REMOTE,
                 BONUS_RADIUS,
@@ -21,8 +22,8 @@ public:
     static bool isSolid(char symbol);
 private:
     /* todo: ensure items like flames cannot be loaded from a file */
-    static constexpr const char * signs = " Wczb#*^&@x";
-    static constexpr const char * solid = "01111000001";
+    static constexpr const char * signs = " Wcezb#*^&@x";
+    static constexpr const char * solid = "011111000001";
 };
 
 #endif

@@ -13,6 +13,7 @@ class Player
 {
 public:
     Player(Game * g, const Pos & pos, int lives, int bombs);
+    virtual ~Player();
     Pos getPos() const;
     void setPos(const Pos & pos);
     void die();
@@ -24,16 +25,20 @@ public:
     void setRemoteBombBonus(bool enable);
     bool hasRemoteBombBonus() const;
     void addBomb();
+    bool hasRemoteBomb(const Pos & p) const;
 
     int getLives() const;
     int getBombsAvail() const;
+    int getBombRadius() const;
     void upgradeBombRadius();
     void defaultBombRadius();
     void setSpeedBonus(bool enable);
     bool hasSpeedBonus() const;
-private:
-    Game * game;
 
+    virtual char getSymbol() const;
+protected:
+    Game * game;
+private:
     Pos pos;
     int lives;
     int maxBombs;

@@ -16,10 +16,22 @@ Pos Pos::operator+(const Pos &pos) const
     return Pos(x+pos.x, y+pos.y);
 }
 
+Pos Pos::operator-(const Pos &pos) const
+{
+    return Pos(x-pos.x, y-pos.y);
+}
+
 Pos &Pos::operator+=(const Pos &pos)
 {
    x += pos.x;
    y += pos.y;
+   return *this;
+}
+
+Pos &Pos::operator-=(const Pos &pos)
+{
+   x -= pos.x;
+   y -= pos.y;
    return *this;
 }
 

@@ -1,16 +1,19 @@
 #include "bomb.h"
+#include "player.h"
 
 /* Bomb */
 
-Bomb::Bomb()
+Bomb::Bomb(Player * owner)
     :radius(3),
-      pos(Pos(0,0))
+      pos(Pos(0,0)),
+      owner(owner)
 {
 }
 
-Bomb::Bomb(const Pos &pos, int radius)
+Bomb::Bomb(Player * owner, const Pos &pos, int radius)
     :radius(radius),
-      pos(pos)
+      pos(pos),
+      owner(owner)
 {
 }
 
@@ -34,15 +37,20 @@ void Bomb::setRadius(int r)
     radius = r;
 }
 
+Player *Bomb::getOwner()
+{
+    return owner;
+}
+
 /* TimedBomb */
 
-TimedBomb::TimedBomb()
-    :Bomb(),counter(70)
+TimedBomb::TimedBomb(Player * owner)
+    :Bomb(owner),counter(70)
 {
 }
 
-TimedBomb::TimedBomb(const Pos & pos, int radius)
-    :Bomb(pos, radius),
+TimedBomb::TimedBomb(Player * owner, const Pos & pos, int radius)
+    :Bomb(owner, pos, radius),
       counter(70)
 {
 }
@@ -59,13 +67,13 @@ void TimedBomb::newFrame()
 
 /* RemoteBomb */
 
-RemoteBomb::RemoteBomb()
-    :Bomb()
+RemoteBomb::RemoteBomb(Player * owner)
+    :Bomb(owner)
 {
 }
 
-RemoteBomb::RemoteBomb(const Pos &pos, int radius)
-    :Bomb(pos, radius)
+RemoteBomb::RemoteBomb(Player * owner, const Pos &pos, int radius)
+    :Bomb(owner, pos, radius)
 {
 }
 

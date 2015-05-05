@@ -3,25 +3,29 @@
 
 #include "pos.h"
 
+class Player;
+
 class Bomb
 {
 public:
-    Bomb();
-    Bomb(const Pos & pos, int radius);
+    Bomb(Player * owner);
+    Bomb(Player * owner, const Pos & pos, int radius);
     Pos getPos() const;
     void setPos(const Pos & p);
     int getRadius() const;
     void setRadius(int r);
+    Player * getOwner();
 private:
     int radius;
     Pos pos;
+    Player * owner;
 };
 
 class TimedBomb : public Bomb
 {
 public:
-    TimedBomb();
-    TimedBomb(const Pos & pos, int radius);
+    TimedBomb(Player * owner);
+    TimedBomb(Player * owner, const Pos & pos, int radius);
     bool shouldExplode() const;
     void newFrame();
 private:
@@ -31,8 +35,8 @@ private:
 class RemoteBomb : public Bomb
 {
 public:
-    RemoteBomb();
-    RemoteBomb(const Pos & pos, int radius);
+    RemoteBomb(Player * owner);
+    RemoteBomb(Player * owner, const Pos & pos, int radius);
 };
 
 class Flame

@@ -9,7 +9,9 @@ struct Pos
     int y;
 
     Pos operator+(const Pos & pos) const;
+    Pos operator-(const Pos & pos) const;
     Pos & operator+=(const Pos & pos);
+    Pos & operator-=(const Pos & pos);
     bool operator==(const Pos & pos) const;
     bool operator!=(const Pos & pos) const;
 };
