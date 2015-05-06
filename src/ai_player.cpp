@@ -46,8 +46,8 @@ AIPlayer::Action AIPlayer::getBestAction()
     Action action;
     int utility = 0;
 
-    const Bomb * threat = bombThreat(getPos());
-    if ( threat )
+    const Bomb * threat;
+    if ( bombThreat(getPos(), &threat) && threat )
     {
         if ( canFleeDirection(*threat, Pos(1, 0)) )
             return MOVE_RIGHT;
@@ -110,10 +110,9 @@ int AIPlayer::airDistance(const Pos &a, const Pos &b) const
     return sqrt(toReturn.x * toReturn.x + toReturn.y * toReturn.y);
 }
 
+/* check for curPos safety before calling this */
 int AIPlayer::idleUtility() const
 {
-    if ( !bombThreat(getPos()) )
-        return 0;
     return 200 - manhattanDistance(getPos(), enemy->getPos());
 }
 
@@ -173,19 +172,47 @@ bool AIPlayer::canFleeDirection(const Bomb &threat,
     }
 }
 
-const Bomb * AIPlayer::bombThreat(Pos location) const
+bool AIPlayer::bombThreat(Pos location, const Bomb ** bomb) const
 {
     Block::Type curBlock = Block::symbolToType(game->getMap().get(location));
-    const Bomb * bomb = 0;
     if ( curBlock == Block::TIMED_BOMB || curBlock == Block::REMOTE_BOMB )
-        return game->getBomb(getPos());
-    bomb = bombThreatDirection(location, Pos(1, 0));
-    if ( bomb ) return bomb;
-    bomb = bombThreatDirection(location, Pos(-1, 0));
-    if ( bomb ) return bomb;
-    bomb = bombThreatDirection(location, Pos(0, 1));
-    if ( bomb ) return bomb;
-    return bombThreatDirection(location, Pos(0, -1));
+    {
+        if ( bomb )
+            *bomb = game->getBomb(getPos());
+        return true;
+    }
+    if ( curBlock == Block::FLAME )
+    {
+        if ( bomb )
+            *bomb = 0;
+        return true;
+    }
+    const Bomb * b;
+    if ( (b = bombThreatDirection(location, Pos(1, 0))) )
+    {
+        if ( bomb )
+            *bomb = b;
+        return true;
+    }
+    if ( (b = bombThreatDirection(location, Pos(-1, 0))) )
+    {
+        if ( bomb )
+            *bomb = b;
+        return true;
+    }
+    if ( (b = bombThreatDirection(location, Pos(0, 1))) )
+    {
+        if ( bomb )
+            *bomb = b;
+        return true;
+    }
+    if ( (b = bombThreatDirection(location, Pos(0, -1))) )
+    {
+        if ( bomb )
+            *bomb = b;
+        return true;
+    }
+    return false;
 }
 
 const Bomb * AIPlayer::bombThreatDirection(const Pos & location, const Pos & offset) const

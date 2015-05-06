@@ -183,6 +183,10 @@ void Game::movePlayer(Player &p, const Pos & offset)
     if ( map.at(curPos) != Block::typeToSymbol(Block::TIMED_BOMB)
          && map.at(curPos) != Block::typeToSymbol(Block::REMOTE_BOMB) )
         map.at(curPos) = Block::typeToSymbol(Block::EMPTY);
+
+    if ( newPosType == Block::FLAME )
+        p.die();
+
     map.at(newPos) = p.getSymbol();
     p.setPos(newPos);
 }
