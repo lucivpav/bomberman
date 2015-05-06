@@ -37,7 +37,7 @@ private:
     void clearMap();
 
     static const int maxWidth = 80;
-    static const int maxHeight = 24;
+    static const int maxHeight = 23;
 };
 
 #endif
