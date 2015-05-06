@@ -22,6 +22,7 @@ Game::Game()
 Game::~Game()
 {
     delete player;
+    delete enemy;
 }
 
 bool Game::canPlantBomb(const Player &player) const
