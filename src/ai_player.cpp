@@ -49,15 +49,39 @@ AIPlayer::Action AIPlayer::getBestAction()
     const Bomb * threat;
     if ( bombThreat(getPos(), &threat) && threat )
     {
-        if ( canFleeDirection(*threat, Pos(1, 0)) )
-            return MOVE_RIGHT;
-        if ( canFleeDirection(*threat, Pos(-1, 0)) )
-            return MOVE_LEFT;
-        if ( canFleeDirection(*threat, Pos(0, 1)) )
-            return MOVE_DOWN;
-        if ( canFleeDirection(*threat, Pos(0, -1)) )
-            return MOVE_UP;
-        updateBestAction(DETONATE_BOMBS, action, utility);
+        int minStepsRequired = 666;
+        int steps;
+
+        steps = canFleeDirection(*threat, Pos(1, 0));
+        if ( steps )
+        {
+            action = MOVE_RIGHT;
+            minStepsRequired = steps;
+        }
+
+        steps = canFleeDirection(*threat, Pos(-1, 0));
+        if ( steps && steps < minStepsRequired )
+        {
+            action = MOVE_LEFT;
+            minStepsRequired = steps;
+        }
+
+        steps = canFleeDirection(*threat, Pos(0, 1));
+        if ( steps && steps < minStepsRequired )
+        {
+            action = MOVE_DOWN;
+            minStepsRequired = steps;
+        }
+
+        steps = canFleeDirection(*threat, Pos(0, -1));
+        if ( steps && steps < minStepsRequired )
+        {
+            action = MOVE_UP;
+            minStepsRequired = steps;
+        }
+
+        if ( steps == 666 )
+            updateBestAction(DETONATE_BOMBS, action, utility);
         return action;
     }
     updateBestAction(Action::IDLE, action, utility);
@@ -143,32 +167,32 @@ bool AIPlayer::canFlee(const Bomb & threat) const
            || canFleeDirection(threat, Pos(0, -1));
 }
 
-bool AIPlayer::canFleeDirection(const Bomb &threat,
+int AIPlayer::canFleeDirection(const Bomb &threat,
                                 Pos offset) const
 {
     Pos playerPos = getPos();
-    while(1)
+    for ( int steps = 1 ; ; steps++ )
     {
         playerPos += offset;
         Pos side = Pos(offset.y, offset.x) + playerPos;
         Pos side2 = Pos(offset.y * -1, offset.x * -1) + playerPos;
 
         if ( !game->canMovePlayer(playerPos) )
-            return false;
+            return 0;
         if ( !bombThreat(playerPos) )
         {
             if ( playerPos.x == threat.getPos().x
                  || playerPos.y == threat.getPos().y )
             {
                 if ( manhattanDistance(playerPos, threat.getPos()) > getBombRadius() )
-                    return true;
+                    return steps;
             }
             else
-                return true;
+                return steps;
         }
         if ( (game->canMovePlayer(side) && !bombThreat(side))
              || (game->canMovePlayer(side2) && !bombThreat(side2)) )
-            return true;
+            return steps;
     }
 }
 
