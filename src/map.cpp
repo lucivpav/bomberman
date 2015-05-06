@@ -150,7 +150,7 @@ char & Map::at(const Pos &pos)
     return map[pos.y][pos.x];
 }
 
-const char &Map::get(const Pos &pos) const
+char Map::get(const Pos &pos) const
 {
     return map[pos.y][pos.x];
 }

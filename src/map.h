@@ -26,7 +26,7 @@ public:
     void draw();
 
     char & at(const Pos & pos);
-    const char & get(const Pos & pos) const;
+    char get(const Pos & pos) const;
 
     int width() const;
     int height() const;
