@@ -23,8 +23,12 @@ private:
 
     int idleUtility() const;
     int moveUtility(const Pos & offset) const;
-
     int plantBombUtility() const;
+    int detonateBombsUtility() const;
+
+    void moveAction(const Pos & offset);
+    void plantBombAction();
+
     bool canFlee(const Bomb &threat) const;
     int canFleeDirection(const Bomb & threat, Pos offset) const;
     bool bombThreat(Pos location,
@@ -35,11 +39,7 @@ private:
                                     const Bomb * ignore = 0) const;
     int wallsToBeDestroyed() const;
     bool wallToBeDestroyedDirection(const Pos & offset) const;
-
-    int detonateBombsUtility() const;
-
-    void moveAction(const Pos & offset);
-    void plantBombAction();
+    bool bonusOpportunity(const Pos & offset) const;
 
     Player * enemy;
 };

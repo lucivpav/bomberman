@@ -145,6 +145,8 @@ int AIPlayer::moveUtility(const Pos &offset) const
     Pos pos = getPos() + offset;
     if ( !game->canMovePlayer(pos) || bombThreat(pos) )
         return 0;
+    if ( bonusOpportunity(offset) )
+        return 400;
     return 200 - manhattanDistance(getPos() + offset, enemy->getPos());
 }
 
@@ -291,6 +293,26 @@ bool AIPlayer::wallToBeDestroyedDirection(const Pos &offset) const
         }
     }
     return false;
+}
+
+bool AIPlayer::bonusOpportunity(const Pos &offset) const
+{
+    Pos pos = getPos();
+    while(1)
+    {
+        pos += offset;
+        char block = game->getMap().get(pos);
+        if ( Block::isSolid(block) )
+            return false;
+        else
+        {
+            if ( Block::symbolToType(block) >= Block::BONUS_BOMB
+                 && Block::symbolToType(block) <= Block::BONUS_RADIUS )
+            {
+                return true;
+            }
+        }
+    }
 }
 
 int AIPlayer::detonateBombsUtility() const

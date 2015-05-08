@@ -52,6 +52,7 @@ void Game::plantTimedBomb(Player &player)
 
 void Game::loop()
 {
+    clear();
     while (1)
     {
         if ( expired )
