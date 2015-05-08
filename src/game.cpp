@@ -16,6 +16,7 @@ Game::Game()
     player = new Player(this, playerPos, 3, 3);
     enemy = new AIPlayer(this, player, enemyPos, 3, 3);
     srand(time(0));
+    genGhosts();
     loop();
 }
 
@@ -62,7 +63,13 @@ void Game::loop()
         int c = getch();
         if ( c != ERR )
             keyEvent(c);
-        enemy->makeDecision();
+
+        if ( shouldUpdateAI() )
+        {
+            enemy->makeDecision();
+            handleGhosts();
+        }
+
         map.draw();
         drawStatus();
         refresh();
@@ -153,6 +160,20 @@ void Game::drawStatus()
     mvprintw(height-1, width-enemyStatus.size()-1, enemyStatus.c_str());
 }
 
+bool Game::shouldUpdateAI() const
+{
+    return true;
+    static auto timestamp = getTimestamp();
+    auto currentTimestamp = getTimestamp();
+
+    if ( (currentTimestamp - timestamp).count() > 800 )
+    {
+        timestamp = currentTimestamp;
+        return true;
+    }
+    return false;
+}
+
 void Game::movePlayer(Player &p, const Pos & offset)
 {
     Pos curPos = p.getPos();
@@ -189,8 +210,52 @@ void Game::movePlayer(Player &p, const Pos & offset)
     if ( newPosType == Block::FLAME )
         p.die();
 
+    if ( newPosType == Block::GHOST
+         && map.get(curPos) == Block::typeToSymbol(Block::PLAYER) )
+        p.die();
+
     map.at(newPos) = p.getSymbol();
     p.setPos(newPos);
+}
+
+bool Game::canMoveGhost(const Pos & where) const
+{
+    return map.get(where) != Block::typeToSymbol(Block::WALL);
+}
+
+void Game::moveGhost(Ghost &g, const Pos & offset)
+{
+    Pos curPos = g.getPos();
+    Pos newPos = curPos + offset;
+    char curGround = g.getGround();
+    char newGround = map.get(newPos);
+
+    assert ( curGround != Block::typeToSymbol(Block::GHOST) );
+
+    for ( const auto & ghost : mGhosts )
+        if ( &ghost != &g
+             && ghost.getPos() == curPos )
+        {
+            curGround = Block::typeToSymbol(Block::GHOST);
+            break;
+        }
+    map.at(curPos) = curGround;
+
+    if ( newGround == Block::typeToSymbol(Block::GHOST) )
+    {
+        for ( const auto & ghost : mGhosts )
+            if ( ghost.getPos() == newPos )
+            {
+                newGround = ghost.getGround();
+                break;
+            }
+    }
+    g.setPos(newPos);
+    g.setGround( newGround );
+    map.at(newPos) = Block::typeToSymbol(Block::GHOST);
+
+    if ( player->getPos() == newPos )
+        player->die();
 }
 
 const Map &Game::getMap() const
@@ -314,6 +379,21 @@ void Game::genFlames(Pos from, const Pos & to)
             symbol = Block::typeToSymbol(Block::FLAME);
             enemy->die();
         }
+        else if ( symbol == Block::typeToSymbol(Block::GHOST) )
+        {
+            for ( auto it = mGhosts.begin();
+                  it != mGhosts.end();
+                  it++ )
+                if ( it->getPos() == from )
+                {
+                    flames.push_back(Flame(from));
+                    symbol = Block::typeToSymbol(Block::FLAME);
+                    //symbol = it->getGround();
+                    mGhosts.erase(it);
+                    return;
+                }
+            assert ( false );
+        }
         else if ( symbol == Block::typeToSymbol(Block::DESTRUCTABLE) )
         {
             if ( rand() % 5 == 0 )
@@ -358,6 +438,36 @@ void Game::genFlames(Pos from, const Pos & to)
             symbol = Block::typeToSymbol(Block::FLAME);
         }
     }
+}
+
+void Game::genGhosts()
+{
+    int nGhosts = map.width() * map.height() / 100;
+    mGhosts.reserve(nGhosts);
+    for ( int i = 0 ; i < nGhosts ; i++ )
+        genGhost();
+}
+
+void Game::genGhost()
+{
+    Pos ghostPos = Pos(rand() % map.width(), rand() % map.height());
+    char ground = map.get(ghostPos);
+    if ( ground == Block::typeToSymbol(Block::WALL)
+         || ground == Block::typeToSymbol(Block::ENEMY)
+         || ground == Block::typeToSymbol(Block::GHOST)
+         || 10 > Pos::manhattanDistance(ghostPos, player->getPos()) )
+    {
+        genGhost();
+        return;
+    }
+    map.at(ghostPos) = Block::typeToSymbol(Block::GHOST);
+    mGhosts.push_back(Ghost(this, ghostPos, ground));
+}
+
+void Game::handleGhosts()
+{
+    for ( auto & ghost : mGhosts )
+        ghost.makeDecision();
 }
 
 std::chrono::milliseconds Game::getTimestamp() const

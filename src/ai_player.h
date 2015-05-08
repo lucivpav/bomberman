@@ -18,8 +18,6 @@ private:
     void updateBestAction(const Action & action,
                           Action & bestAction,
                           int & bestUtility);
-    int manhattanDistance(const Pos & a, const Pos & b) const;
-    int airDistance(const Pos & a, const Pos & b) const;
 
     int idleUtility() const;
     int moveUtility(const Pos & offset) const;

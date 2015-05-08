@@ -44,3 +44,15 @@ bool Pos::operator!=(const Pos &pos) const
 {
     return !(*this == pos);
 }
+
+int Pos::manhattanDistance(const Pos &a, const Pos &b)
+{
+    Pos toReturn = a - b;
+    return toReturn.x + toReturn.y;
+}
+
+int Pos::airDistance(const Pos &a, const Pos &b)
+{
+    Pos toReturn = a - b;
+    return sqrt(toReturn.x * toReturn.x + toReturn.y * toReturn.y);
+}

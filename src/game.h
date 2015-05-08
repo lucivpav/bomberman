@@ -6,6 +6,7 @@
 #include "bomb.h"
 #include "player.h"
 #include "ai_player.h"
+#include "ghost.h"
 
 #include <map>
 #include <chrono>
@@ -31,6 +32,8 @@ public:
     void bombExplosion(const Bomb & b);
     bool canMovePlayer(const Pos & where) const;
     void movePlayer(Player &p, const Pos &offset);
+    bool canMoveGhost(const Pos & where) const;
+    void moveGhost(Ghost & g, const Pos & offset);
     const Map & getMap() const;
     const Bomb * getBomb(const Pos & p) const;
     const TimedBomb & getTimedBomb(const Pos & p) const;
@@ -42,16 +45,22 @@ private:
     std::vector<TimedBomb> timedBombs;
     std::vector<Flame> flames;
     std::map<int, Bonus> bonuses;
+    std::vector<Ghost> mGhosts;
 
     bool expired;
 
     void loop();
     void keyEvent(int key);
     void drawStatus();
+    bool shouldUpdateAI() const;
 
     void handleBombs();
     void handleFlames();
     void genFlames(Pos from, const Pos &to);
+
+    void genGhosts();
+    void genGhost();
+    void handleGhosts();
 
     std::chrono::milliseconds getTimestamp() const;
 };

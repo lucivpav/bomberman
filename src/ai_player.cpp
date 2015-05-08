@@ -3,7 +3,6 @@
 #include "game.h"
 #include "block.h"
 
-#include <cmath>
 #include <cassert>
 
 AIPlayer::AIPlayer(Game *g, Player *p, const Pos &pos, int lives, int bombs)
@@ -122,22 +121,10 @@ void AIPlayer::updateBestAction(const Action & action,
     }
 }
 
-int AIPlayer::manhattanDistance(const Pos &a, const Pos &b) const
-{
-    Pos toReturn = a - b;
-    return toReturn.x + toReturn.y;
-}
-
-int AIPlayer::airDistance(const Pos &a, const Pos &b) const
-{
-    Pos toReturn = a - b;
-    return sqrt(toReturn.x * toReturn.x + toReturn.y * toReturn.y);
-}
-
 /* check for curPos safety before calling this */
 int AIPlayer::idleUtility() const
 {
-    return 200 - manhattanDistance(getPos(), enemy->getPos());
+    return 200 - Pos::manhattanDistance(getPos(), enemy->getPos());
 }
 
 int AIPlayer::moveUtility(const Pos &offset) const
@@ -147,7 +134,7 @@ int AIPlayer::moveUtility(const Pos &offset) const
         return 0;
     if ( bonusOpportunity(offset) )
         return 400;
-    return 200 - manhattanDistance(getPos() + offset, enemy->getPos());
+    return 200 - Pos::manhattanDistance(getPos() + offset, enemy->getPos());
 }
 
 int AIPlayer::plantBombUtility() const
@@ -155,7 +142,7 @@ int AIPlayer::plantBombUtility() const
     if ( !game->canPlantBomb(*this)
          || !canFlee(Bomb(0, getPos(), getBombRadius())) )
         return 0;
-    int dist = airDistance(getPos(), enemy->getPos());
+    int dist = Pos::airDistance(getPos(), enemy->getPos());
     if ( dist < getBombRadius() )
         return 400 - dist;
     return wallsToBeDestroyed() * 160;
@@ -188,7 +175,7 @@ int AIPlayer::canFleeDirection(const Bomb &threat,
             if ( playerPos.x == threat.getPos().x
                  || playerPos.y == threat.getPos().y )
             {
-                if ( manhattanDistance(playerPos, threat.getPos()) > getBombRadius() )
+                if ( Pos::manhattanDistance(playerPos, threat.getPos()) > getBombRadius() )
                     return steps;
             }
             else
@@ -256,7 +243,7 @@ const Bomb * AIPlayer::bombThreatDirection(const Pos & location, const Pos & off
         const Bomb * b = game->getBomb(pos);
         if ( !b ) return 0;
         if ( !ignore || (ignore && ignore != b) )
-            return manhattanDistance(location, b->getPos())
+            return Pos::manhattanDistance(location, b->getPos())
                     > b->getRadius() ? 0 : b;
         else
             continue;
