@@ -2,6 +2,7 @@
 #define AI_PLAYER_H
 
 #include "player.h"
+#include "countdown.h"
 
 class AIPlayer : public Player
 {
@@ -40,6 +41,9 @@ private:
     bool bonusOpportunity(const Pos & offset) const;
 
     Player * enemy;
+    Countdown mIdleCountdown;
+    Countdown mMoveCountdown;
+    bool mIdle;
 };
 
 #endif

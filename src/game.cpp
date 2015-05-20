@@ -4,7 +4,6 @@
 #include <string>
 #include <cstdlib>
 #include <ctime>
-#include <chrono>
 #include <cassert>
 
 Game::Game()
@@ -64,11 +63,8 @@ void Game::loop()
         if ( c != ERR )
             keyEvent(c);
 
-        if ( shouldUpdateAI() )
-        {
-            enemy->makeDecision();
-            handleGhosts();
-        }
+        enemy->makeDecision();
+        handleGhosts();
 
         map.draw();
         drawGhosts();
@@ -83,11 +79,8 @@ void Game::keyEvent(int key)
     bool moveButtonHold = false;
 
     // not holding on first iteration
-    static auto timestamp = getTimestamp() - std::chrono::milliseconds(1000);
-    auto currentTimestamp = getTimestamp();
-
-    moveButtonHold = (currentTimestamp - timestamp).count() < 100;
-    timestamp = currentTimestamp;
+    static Countdown buttonCountdown(0);
+    moveButtonHold = !buttonCountdown.expired(100);
 
     if ( key == 'q' )
     {
@@ -166,19 +159,6 @@ void Game::drawStatus() const
             std::to_string(enemy->getBombsAvail());
     mvprintw(height-1, 0, status.c_str());
     mvprintw(height-1, width-enemyStatus.size()-1, enemyStatus.c_str());
-}
-
-bool Game::shouldUpdateAI() const
-{
-    static auto timestamp = getTimestamp();
-    auto currentTimestamp = getTimestamp();
-
-    if ( (currentTimestamp - timestamp).count() > 300 )
-    {
-        timestamp = currentTimestamp;
-        return true;
-    }
-    return false;
 }
 
 void Game::movePlayer(Player &p, const Pos & offset)
@@ -458,12 +438,9 @@ void Game::genGhost()
 
 void Game::handleGhosts()
 {
+    static Countdown moveCountdown(500);
+    if ( !moveCountdown.expired() )
+        return;
     for ( auto & ghost : mGhosts )
         ghost.makeDecision();
-}
-
-std::chrono::milliseconds Game::getTimestamp() const
-{
-    return std::chrono::duration_cast<std::chrono::milliseconds>
-            (std::chrono::system_clock::now().time_since_epoch());
 }

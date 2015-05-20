@@ -53,7 +53,6 @@ private:
     void keyEvent(int key);
     void drawGhosts() const;
     void drawStatus() const;
-    bool shouldUpdateAI() const;
 
     void handleBombs();
     void handleFlames();
@@ -62,8 +61,6 @@ private:
     void genGhosts();
     void genGhost();
     void handleGhosts();
-
-    std::chrono::milliseconds getTimestamp() const;
 };
 
 #endif

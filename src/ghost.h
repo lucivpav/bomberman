@@ -17,7 +17,6 @@ private:
     Pos mPos;
     Pos mDirection;
     int mCountdown; /* direction change countdown */
-
     void changeDirection();
 };
 

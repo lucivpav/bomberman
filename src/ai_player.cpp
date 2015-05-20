@@ -7,7 +7,7 @@
 
 AIPlayer::AIPlayer(Game *g, Player *p, const Pos &pos, int lives, int bombs)
     :Player(g, pos, lives, bombs),
-      enemy(p)
+      enemy(p), mIdleCountdown(2000), mMoveCountdown(100), mIdle(false)
 {
 }
 
@@ -22,6 +22,23 @@ char AIPlayer::getSymbol() const
 
 void AIPlayer::makeDecision()
 {
+    if ( mIdleCountdown.expired(mIdle ? 2000 : 1500) )
+        mIdle = !mIdle;
+
+    if ( mIdle )
+    {
+        if ( !bombThreat(getPos()) )
+            return;
+        else
+            mIdle = false;
+    }
+
+    if ( !mIdle )
+    {
+        if ( !mMoveCountdown.expired() )
+            return;
+    }
+
     Action action = getBestAction();
 
     if ( action == Action::IDLE )
