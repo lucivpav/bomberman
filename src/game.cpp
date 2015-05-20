@@ -71,6 +71,7 @@ void Game::loop()
         }
 
         map.draw();
+        drawGhosts();
         drawStatus();
         refresh();
     }
@@ -140,7 +141,14 @@ void Game::keyEvent(int key)
     }
 }
 
-void Game::drawStatus()
+void Game::drawGhosts() const
+{
+    for ( const auto & ghost : mGhosts )
+        mvaddch(ghost.getPos().y, ghost.getPos().x,
+                 Block::typeToSymbol(Block::GHOST));
+}
+
+void Game::drawStatus() const
 {
     int width, height;
     getmaxyx(stdscr, height, width);
@@ -162,11 +170,10 @@ void Game::drawStatus()
 
 bool Game::shouldUpdateAI() const
 {
-    return true;
     static auto timestamp = getTimestamp();
     auto currentTimestamp = getTimestamp();
 
-    if ( (currentTimestamp - timestamp).count() > 800 )
+    if ( (currentTimestamp - timestamp).count() > 300 )
     {
         timestamp = currentTimestamp;
         return true;
@@ -223,36 +230,23 @@ bool Game::canMoveGhost(const Pos & where) const
     return map.get(where) != Block::typeToSymbol(Block::WALL);
 }
 
+/* call canMoveGhost before this */
 void Game::moveGhost(Ghost &g, const Pos & offset)
 {
-    Pos curPos = g.getPos();
-    Pos newPos = curPos + offset;
-    char curGround = g.getGround();
-    char newGround = map.get(newPos);
+    assert ( canMoveGhost(g.getPos() + offset) );
 
-    assert ( curGround != Block::typeToSymbol(Block::GHOST) );
-
-    for ( const auto & ghost : mGhosts )
-        if ( &ghost != &g
-             && ghost.getPos() == curPos )
-        {
-            curGround = Block::typeToSymbol(Block::GHOST);
-            break;
-        }
-    map.at(curPos) = curGround;
-
-    if ( newGround == Block::typeToSymbol(Block::GHOST) )
-    {
-        for ( const auto & ghost : mGhosts )
-            if ( ghost.getPos() == newPos )
-            {
-                newGround = ghost.getGround();
-                break;
-            }
-    }
+    Pos newPos = g.getPos() + offset;
     g.setPos(newPos);
-    g.setGround( newGround );
-    map.at(newPos) = Block::typeToSymbol(Block::GHOST);
+
+    if ( map.get(newPos) == Block::typeToSymbol(Block::FLAME) )
+        for ( auto it = mGhosts.begin();
+                  it != mGhosts.end();
+                  it++ )
+                if ( &g == &*it )
+                {
+                    mGhosts.erase(it);
+                    return;
+                }
 
     if ( player->getPos() == newPos )
         player->die();
@@ -388,7 +382,6 @@ void Game::genFlames(Pos from, const Pos & to)
                 {
                     flames.push_back(Flame(from));
                     symbol = Block::typeToSymbol(Block::FLAME);
-                    //symbol = it->getGround();
                     mGhosts.erase(it);
                     return;
                 }
@@ -460,8 +453,7 @@ void Game::genGhost()
         genGhost();
         return;
     }
-    map.at(ghostPos) = Block::typeToSymbol(Block::GHOST);
-    mGhosts.push_back(Ghost(this, ghostPos, ground));
+    mGhosts.push_back(Ghost(this, ghostPos));
 }
 
 void Game::handleGhosts()

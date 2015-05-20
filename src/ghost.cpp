@@ -3,9 +3,9 @@
 #include "game.h"
 #include <cassert>
 
-Ghost::Ghost(Game *g, const Pos &pos, char ground)
+Ghost::Ghost(Game *g, const Pos &pos)
     :mGame(g), mPos(pos), mDirection(Pos(1, 0)),
-      mCountdown(4),mGround(ground)
+      mCountdown(4)
 {
     if ( rand() % 4 )
         changeDirection();
@@ -19,16 +19,6 @@ void Ghost::setPos(const Pos & pos)
 const Pos & Ghost::getPos() const
 {
     return mPos;
-}
-
-void Ghost::setGround(char ground)
-{
-    mGround = ground;
-}
-
-char Ghost::getGround() const
-{
-    return mGround;
 }
 
 void Ghost::makeDecision()

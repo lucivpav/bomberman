@@ -51,7 +51,8 @@ private:
 
     void loop();
     void keyEvent(int key);
-    void drawStatus();
+    void drawGhosts() const;
+    void drawStatus() const;
     bool shouldUpdateAI() const;
 
     void handleBombs();
