@@ -7,9 +7,9 @@
 #include "player.h"
 #include "ai_player.h"
 #include "ghost.h"
+#include "trap.h"
 
 #include <map>
-#include <chrono>
 
 class Bonus
 {
@@ -24,7 +24,7 @@ private:
 class Game
 {
 public:
-    Game();
+    Game(bool genTraps);
     ~Game();
 
     bool canPlantBomb(const Player & player) const;
@@ -33,19 +33,22 @@ public:
     bool canMovePlayer(const Pos & where) const;
     void movePlayer(Player &p, const Pos &offset);
     bool canMoveGhost(const Pos & where) const;
-    void moveGhost(Ghost & g, const Pos & offset);
+    bool moveGhost(Ghost & g, const Pos & offset); /* returns false when dies */
     const Map & getMap() const;
     const Bomb * getBomb(const Pos & p) const;
     const TimedBomb & getTimedBomb(const Pos & p) const;
+    bool isFlameAt(const Pos & p) const;
+    bool isTrapAt(const Pos & p) const;
 private:
     Map map;
     Player * player;
     AIPlayer * enemy;
 
     std::vector<TimedBomb> timedBombs;
-    std::vector<Flame> flames;
+    std::map<Pos, Flame> flames; // virtual
     std::map<int, Bonus> bonuses;
-    std::vector<Ghost> mGhosts;
+    std::map<Pos, Ghost> mGhosts; // virtual
+    std::map<Pos, Trap> mTraps; // virtual
 
     bool expired;
 
@@ -53,6 +56,8 @@ private:
     void keyEvent(int key);
     void drawGhosts() const;
     void drawStatus() const;
+    void drawFlames() const;
+    void drawTraps() const;
 
     void handleBombs();
     void handleFlames();
@@ -61,6 +66,10 @@ private:
     void genGhosts();
     void genGhost();
     void handleGhosts();
+
+    void genTraps();
+    void genTrap();
+    void handleTraps();
 };
 
 #endif

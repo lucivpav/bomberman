@@ -11,13 +11,18 @@ public:
     Ghost(Game * g, const Pos & pos);
     void setPos(const Pos & pos);
     const Pos & getPos() const;
-    void makeDecision();
+    bool makeDecision(); /* returns false when dies */
 private:
     Game * mGame;
     Pos mPos;
     Pos mDirection;
     int mCountdown; /* direction change countdown */
-    void changeDirection();
+
+    /**
+     * @brief changeDirection
+     * @return false if no direction change leads to ability to move
+     */
+    bool changeDirection();
 };
 
 #endif

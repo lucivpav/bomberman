@@ -21,26 +21,33 @@ const Pos & Ghost::getPos() const
     return mPos;
 }
 
-void Ghost::makeDecision()
+bool Ghost::makeDecision()
 {
     if ( !mCountdown && rand() % 3 )
     {
-        changeDirection();
-        mGame->moveGhost(*this, mDirection);
+        if ( changeDirection() )
+            if ( !mGame->moveGhost(*this, mDirection) )
+                return false;
         mCountdown = 4;
+        return true;
     }
     else
     {
         Pos newPos = mPos + mDirection;
+        bool canMove = true;
         if ( !mGame->canMoveGhost(newPos) )
-            changeDirection();
-        mGame->moveGhost(*this, mDirection);
+            if ( !changeDirection() )
+                canMove = false;
+        if  ( canMove )
+            if ( !mGame->moveGhost(*this, mDirection) )
+                return false;
         if ( mCountdown )
             --mCountdown;
+        return true;
     }
 }
 
-void Ghost::changeDirection()
+bool Ghost::changeDirection()
 {
     Pos newDirection[3];
     newDirection[0] = Pos(-mDirection.x, -mDirection.y);
@@ -56,8 +63,8 @@ void Ghost::changeDirection()
         else
         {
             mDirection = newDirection[choice];
-            return;
+            return true;
         }
     }
-    assert ( false );
+    return false;
 }

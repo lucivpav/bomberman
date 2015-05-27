@@ -6,7 +6,7 @@
 #include <ctime>
 #include <cassert>
 
-Game::Game()
+Game::Game(bool genTraps)
     :expired(false)
 {
     Pos playerPos;
@@ -16,6 +16,8 @@ Game::Game()
     enemy = new AIPlayer(this, player, enemyPos, 3, 3);
     srand(time(0));
     genGhosts();
+    if ( genTraps )
+        Game::genTraps();
     loop();
 }
 
@@ -34,6 +36,8 @@ bool Game::canPlantBomb(const Player &player) const
     if ( type != Block::PLAYER
          && type != Block::ENEMY
          && Block::isSolid(map.get(p)) )
+        return false;
+    if ( mTraps.find(p) != mTraps.end() )
         return false;
     return true;
 }
@@ -65,9 +69,12 @@ void Game::loop()
 
         enemy->makeDecision();
         handleGhosts();
+        handleTraps();
 
         map.draw();
+        drawTraps();
         drawGhosts();
+        drawFlames();
         drawStatus();
         refresh();
     }
@@ -137,7 +144,7 @@ void Game::keyEvent(int key)
 void Game::drawGhosts() const
 {
     for ( const auto & ghost : mGhosts )
-        mvaddch(ghost.getPos().y, ghost.getPos().x,
+        mvaddch(ghost.first.y, ghost.first.x,
                  Block::typeToSymbol(Block::GHOST));
 }
 
@@ -159,6 +166,24 @@ void Game::drawStatus() const
             std::to_string(enemy->getBombsAvail());
     mvprintw(height-1, 0, status.c_str());
     mvprintw(height-1, width-enemyStatus.size()-1, enemyStatus.c_str());
+}
+
+void Game::drawFlames() const
+{
+    for ( const auto & flame : flames )
+        mvaddch(flame.first.y, flame.first.x,
+                Block::typeToSymbol(Block::FLAME));
+}
+
+void Game::drawTraps() const
+{
+    for ( const auto & trap : mTraps )
+        if ( player->getPos() != trap.first
+             && enemy->getPos() != trap.first )
+            mvaddch(trap.first.y, trap.first.x,
+                    trap.second.isOpen() ?
+                        Block::typeToSymbol(Block::TRAP_OPENED)
+                      : Block::typeToSymbol(Block::TRAP_CLOSED));
 }
 
 void Game::movePlayer(Player &p, const Pos & offset)
@@ -194,11 +219,14 @@ void Game::movePlayer(Player &p, const Pos & offset)
          && map.at(curPos) != Block::typeToSymbol(Block::REMOTE_BOMB) )
         map.at(curPos) = Block::typeToSymbol(Block::EMPTY);
 
-    if ( newPosType == Block::FLAME )
+    if ( flames.find(newPos) != flames.end() )
         p.die();
 
-    if ( newPosType == Block::GHOST
-         && map.get(curPos) == Block::typeToSymbol(Block::PLAYER) )
+    if ( mGhosts.find(newPos) != mGhosts.end() && &p == player )
+        p.die();
+
+    auto trap = mTraps.find(newPos);
+    if ( trap != mTraps.end() && trap->second.isOpen() )
         p.die();
 
     map.at(newPos) = p.getSymbol();
@@ -207,29 +235,22 @@ void Game::movePlayer(Player &p, const Pos & offset)
 
 bool Game::canMoveGhost(const Pos & where) const
 {
-    return map.get(where) != Block::typeToSymbol(Block::WALL);
+    return map.get(where) != Block::typeToSymbol(Block::WALL)
+            && mGhosts.find(where) == mGhosts.end();
 }
 
 /* call canMoveGhost before this */
-void Game::moveGhost(Ghost &g, const Pos & offset)
+bool Game::moveGhost(Ghost &g, const Pos & offset)
 {
-    assert ( canMoveGhost(g.getPos() + offset) );
-
     Pos newPos = g.getPos() + offset;
     g.setPos(newPos);
 
-    if ( map.get(newPos) == Block::typeToSymbol(Block::FLAME) )
-        for ( auto it = mGhosts.begin();
-                  it != mGhosts.end();
-                  it++ )
-                if ( &g == &*it )
-                {
-                    mGhosts.erase(it);
-                    return;
-                }
+    if ( flames.find(newPos) != flames.end() )
+        return false;
 
     if ( player->getPos() == newPos )
         player->die();
+    return true;
 }
 
 const Map &Game::getMap() const
@@ -263,6 +284,16 @@ const TimedBomb &Game::getTimedBomb(const Pos &p) const
     assert ( false );
 }
 
+bool Game::isFlameAt(const Pos &p) const
+{
+    return flames.find(p) != flames.end();
+}
+
+bool Game::isTrapAt(const Pos &p) const
+{
+    return mTraps.find(p) != mTraps.end();
+}
+
 void Game::handleBombs()
 {
     for ( auto it = timedBombs.begin();
@@ -285,10 +316,10 @@ void Game::handleFlames()
     for ( auto it = flames.begin();
           it != flames.end(); )
     {
-        it->newFrame();
-        if ( it->timedOut() )
+        it->second.newFrame();
+        if ( it->second.timedOut() )
         {
-            Pos pos = it->getPos();
+            Pos pos = it->second.getPos();
             if ( pos == player->getPos() )
                 map.at(pos) = Block::typeToSymbol(Block::PLAYER);
             else if ( pos == enemy->getPos() )
@@ -306,8 +337,12 @@ void Game::bombExplosion(const Bomb & b)
 {
     Pos bombPos = b.getPos();
     int radius = b.getRadius();
-    flames.push_back(Flame(bombPos));
-    map.at(bombPos) = Block::typeToSymbol(Block::FLAME);
+    if ( player->getPos() == bombPos )
+        player->die();
+    if ( enemy->getPos() == bombPos )
+        enemy->die();
+    map.at(bombPos) = Block::typeToSymbol(Block::EMPTY);
+    flames.insert(std::make_pair(bombPos, Flame(bombPos)));
     genFlames(bombPos + Pos(1, 0), bombPos + Pos(radius, 0));
     genFlames(bombPos + Pos(-1, 0), bombPos + Pos(-radius, 0));
     genFlames(bombPos + Pos(0, 1), bombPos + Pos(0, radius));
@@ -326,6 +361,7 @@ bool Game::canMovePlayer(const Pos & where) const
 
 void Game::genFlames(Pos from, const Pos & to)
 {
+    //todo refactor
     //todo asserts
 
     Pos diff;
@@ -340,32 +376,21 @@ void Game::genFlames(Pos from, const Pos & to)
 
     for ( ; from != to ; from += diff )
     {
+        auto it = mGhosts.find(from);
+        if ( it != mGhosts.end() )
+            mGhosts.erase(it);
+
+        using std::make_pair;
         char & symbol = map.at(from);
         if ( symbol == Block::typeToSymbol(Block::PLAYER) )
         {
-            flames.push_back(Flame(from));
-            symbol = Block::typeToSymbol(Block::FLAME);
+            flames.insert(make_pair(from, Flame(from)));
             player->die();
         }
         else if ( symbol == Block::typeToSymbol(Block::ENEMY) )
         {
-            flames.push_back(Flame(from));
-            symbol = Block::typeToSymbol(Block::FLAME);
+            flames.insert(make_pair(from, Flame(from)));
             enemy->die();
-        }
-        else if ( symbol == Block::typeToSymbol(Block::GHOST) )
-        {
-            for ( auto it = mGhosts.begin();
-                  it != mGhosts.end();
-                  it++ )
-                if ( it->getPos() == from )
-                {
-                    flames.push_back(Flame(from));
-                    symbol = Block::typeToSymbol(Block::FLAME);
-                    mGhosts.erase(it);
-                    return;
-                }
-            assert ( false );
         }
         else if ( symbol == Block::typeToSymbol(Block::DESTRUCTABLE) )
         {
@@ -377,10 +402,7 @@ void Game::genFlames(Pos from, const Pos & to)
                 symbol = Block::typeToSymbol(Block::Type(type));
             }
             else
-            {
-                flames.push_back(Flame(from));
-                symbol = Block::typeToSymbol(Block::FLAME);
-            }
+                flames.insert(make_pair(from, Flame(from)));
             break;
         }
         else if ( symbol == Block::typeToSymbol(Block::TIMED_BOMB)
@@ -392,9 +414,10 @@ void Game::genFlames(Pos from, const Pos & to)
                   it++ )
                 if ( it->getPos() == from )
                 {
-                    bombExplosion(*it);
+                    Bomb tmp = *it;
                     it->getOwner()->addBomb();
                     timedBombs.erase(it);
+                    bombExplosion(tmp);
                     return;
                 }
             if ( player->detonateRemoteBomb(from)
@@ -405,10 +428,9 @@ void Game::genFlames(Pos from, const Pos & to)
         }
         else if ( Block::isSolid(symbol) )
             break;
-        else // empty or flame
+        else // empty or flame or trap
         {
-            flames.push_back(Flame(from));
-            symbol = Block::typeToSymbol(Block::FLAME);
+            flames.insert(make_pair(from, Flame(from)));
         }
     }
 }
@@ -416,7 +438,6 @@ void Game::genFlames(Pos from, const Pos & to)
 void Game::genGhosts()
 {
     int nGhosts = map.width() * map.height() / 100;
-    mGhosts.reserve(nGhosts);
     for ( int i = 0 ; i < nGhosts ; i++ )
         genGhost();
 }
@@ -427,13 +448,13 @@ void Game::genGhost()
     char ground = map.get(ghostPos);
     if ( ground == Block::typeToSymbol(Block::WALL)
          || ground == Block::typeToSymbol(Block::ENEMY)
-         || ground == Block::typeToSymbol(Block::GHOST)
+         || mGhosts.find(ghostPos) != mGhosts.end()
          || 10 > Pos::manhattanDistance(ghostPos, player->getPos()) )
     {
         genGhost();
         return;
     }
-    mGhosts.push_back(Ghost(this, ghostPos));
+    mGhosts.insert(std::make_pair(ghostPos, Ghost(this, ghostPos)));
 }
 
 void Game::handleGhosts()
@@ -441,6 +462,47 @@ void Game::handleGhosts()
     static Countdown moveCountdown(500);
     if ( !moveCountdown.expired() )
         return;
-    for ( auto & ghost : mGhosts )
-        ghost.makeDecision();
+    std::map<Pos, Ghost> tmp = mGhosts;
+    for ( auto ghost = tmp.begin();
+          ghost != tmp.end();
+          ghost++ )
+    {
+        if ( ghost->second.makeDecision() )
+        {
+            Pos newPos = ghost->second.getPos();
+            mGhosts.erase(mGhosts.find(ghost->first));
+            mGhosts.insert(std::make_pair(newPos, ghost->second));
+        }
+        else
+            mGhosts.erase(ghost->first);
+    }
+}
+
+void Game::genTraps()
+{
+    int nTraps = map.width() * map.height() / 100;
+    for ( int i = 0 ; i < nTraps ; i++ )
+        genTrap();
+}
+
+void Game::genTrap()
+{
+    Pos trapPos = Pos(rand() % map.width(), rand() % map.height());
+    char ground = map.get(trapPos);
+    if ( ground == Block::typeToSymbol(Block::WALL)
+         || ground == Block::typeToSymbol(Block::ENEMY)
+         || ground == Block::typeToSymbol(Block::TRAP_CLOSED)
+         || 10 > Pos::manhattanDistance(trapPos, player->getPos()) )
+    {
+        genTrap();
+        return;
+    }
+    map.at(trapPos) = Block::typeToSymbol(Block::EMPTY);
+    mTraps.insert(std::make_pair(trapPos, Trap(map, trapPos)));
+}
+
+void Game::handleTraps()
+{
+    for ( auto & trap : mTraps )
+        trap.second.update();
 }

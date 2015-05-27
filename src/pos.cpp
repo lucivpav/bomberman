@@ -56,3 +56,17 @@ int Pos::airDistance(const Pos &a, const Pos &b)
     Pos toReturn = a - b;
     return sqrt(toReturn.x * toReturn.x + toReturn.y * toReturn.y);
 }
+
+
+bool Pos::operator<(const Pos &pos) const
+{
+    if ( x < pos.x )
+        return true;
+    else if ( x > pos.x )
+        return false;
+    if ( y < pos.y )
+        return true;
+    else if ( y > pos.y )
+        return false;
+    return false;
+}

@@ -38,7 +38,7 @@ SingleplayerItem::SingleplayerItem(const char *name)
 
 bool SingleplayerItem::action()
 {
-    Game game;
+    Game game(true);
     return false;
 }
 

@@ -45,7 +45,7 @@ bool Player::plantBomb(Bomb & b)
 
 bool Player::plantRemoteBomb()
 {
-    if ( !bombsAvail || !remoteBombBonus )
+    if ( !remoteBombBonus || !game->canPlantBomb(*this) )
         return false;
     bombsAvail--;
     RemoteBomb b(this, pos, bombRadius);

@@ -147,7 +147,9 @@ int AIPlayer::idleUtility() const
 int AIPlayer::moveUtility(const Pos &offset) const
 {
     Pos pos = getPos() + offset;
-    if ( !game->canMovePlayer(pos) || bombThreat(pos) )
+    if ( !game->canMovePlayer(pos)
+         || bombThreat(pos)
+         || game->isTrapAt(pos) )
         return 0;
     if ( bonusOpportunity(offset) )
         return 400;
@@ -183,7 +185,7 @@ int AIPlayer::canFleeDirection(const Bomb &threat,
         Pos side = Pos(offset.y, offset.x) + playerPos;
         Pos side2 = Pos(offset.y * -1, offset.x * -1) + playerPos;
 
-        if ( !game->canMovePlayer(playerPos) )
+        if ( !game->canMovePlayer(playerPos) || game->isTrapAt(playerPos) )
             return 0;
         const Bomb * threat2;
         if ( bombThreat(playerPos, &threat2, &threat) )
@@ -198,8 +200,13 @@ int AIPlayer::canFleeDirection(const Bomb &threat,
             else
                 return steps;
         }
-        if ( (game->canMovePlayer(side) && !bombThreat(side))
-             || (game->canMovePlayer(side2) && !bombThreat(side2)) )
+        if ( (game->canMovePlayer(side)
+              && !bombThreat(side)
+              && !game->isTrapAt(side))
+             ||
+             (game->canMovePlayer(side2)
+              && !bombThreat(side2)
+              && !game->isTrapAt(side2)) )
             return steps;
     }
 }
@@ -214,7 +221,7 @@ bool AIPlayer::bombThreat(Pos location, const Bomb ** bomb, const Bomb * ignore)
         if ( !ignore || (ignore && *bomb != ignore) )
             return true;
     }
-    else if ( curBlock == Block::FLAME )
+    else if ( game->isFlameAt(location) )
     {
         if ( bomb )
             *bomb = 0;

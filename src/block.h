@@ -9,10 +9,12 @@ public:
                 PLAYER,
                 ENEMY,
                 GHOST,
+                TRAP_CLOSED,
+                TRAP_OPENED,
                 DESTRUCTABLE,
                 TIMED_BOMB,
                 FLAME,
-                BONUS_BOMB = 8,
+                BONUS_BOMB = 10,
                 BONUS_SPEED,
                 BONUS_REMOTE,
                 BONUS_RADIUS,
@@ -23,8 +25,8 @@ public:
     static bool isSolid(char symbol);
 private:
     /* todo: ensure items like flames cannot be loaded from a file */
-    static constexpr const char * signs = " Wcegzb#*^&@x";
-    static constexpr const char * solid = "0111011000001";
+    static constexpr const char * signs = " WcegTtzb#*^&@x";
+    static constexpr const char * solid = "011100011000001";
 };
 
 #endif
