@@ -4,6 +4,9 @@
 #include "player.h"
 #include "countdown.h"
 
+#include <map>
+#include <vector>
+
 class AIPlayer : public Player
 {
 public:
@@ -11,6 +14,10 @@ public:
     virtual ~AIPlayer();
     virtual char getSymbol() const;
     void makeDecision();
+
+    // debug
+    mutable std::vector<Pos> mPath;
+    mutable std::vector<Pos> mCandidatePath;
 private:
     enum Action {IDLE, MOVE_LEFT, MOVE_RIGHT, MOVE_UP, MOVE_DOWN,
                  PLANT_BOMB, DETONATE_BOMBS};
@@ -20,9 +27,9 @@ private:
                           Action & bestAction,
                           int & bestUtility);
 
-    int idleUtility() const;
-    int moveUtility(const Pos & offset) const;
-    int plantBombUtility() const;
+    int idleUtility();
+    int moveUtility(const Pos & offset);
+    int plantBombUtility();
     int detonateBombsUtility() const;
 
     void moveAction(const Pos & offset);
@@ -40,10 +47,17 @@ private:
     bool wallToBeDestroyedDirection(const Pos & offset) const;
     bool bonusOpportunity(const Pos & offset) const;
 
+    int distanceToEnemy(Pos from, std::vector<Pos> * hint = 0) const;
+    void reconstructPath(const Pos & from,
+                         const Pos & to,
+                         const std::map<Pos, Pos> & prev,
+                         std::vector<Pos> & path) const;
+
     Player * enemy;
     Countdown mIdleCountdown;
     Countdown mMoveCountdown;
     bool mIdle;
+    std::vector<Pos> mPathfinderHint;
 };
 
 #endif

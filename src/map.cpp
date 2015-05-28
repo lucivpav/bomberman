@@ -1,5 +1,6 @@
 #include "map.h"
 
+#include <cassert>
 #include <fstream>
 #include <ncurses.h>
 
@@ -7,12 +8,12 @@ Map::Map()
 {
 }
 
-Map::Map(const char *file, Pos & playerPos, Pos &enemyPos)
+Map::Map(const char *file, Pos & playerPos, Pos &enemyPos, std::set<Pos> & trapsPos)
 {
-    load(file, playerPos, enemyPos);
+    load(file, playerPos, enemyPos, trapsPos);
 }
 
-void Map::load(const char *file, Pos & playerPos, Pos &enemyPos)
+void Map::load(const char *file, Pos & playerPos, Pos &enemyPos, std::set<Pos> & trapsPos)
 {
     const char LF = 10, CR = 13;
     enum Encoding {UNIX, DOS, MAC};
@@ -67,8 +68,8 @@ void Map::load(const char *file, Pos & playerPos, Pos &enemyPos)
     map[0][mWidth] = '\0';
     for ( size_t i = 0 ; i < line.size() ; i++ )
     {
-        map[0][i] = Block::typeToSymbol(Block::WALL);
-        if ( line[i] != Block::typeToSymbol(Block::WALL) )
+        map[0][i] = line[i];
+        if ( !validOuterBlock(line[i]) )
             throw MapLoadException(MapLoadException::INVALID_MAP);
     }
 
@@ -92,9 +93,9 @@ void Map::load(const char *file, Pos & playerPos, Pos &enemyPos)
                 throw MapLoadException(MapLoadException::READ_FAILURE);
         }
 
-        if ( (int)line.size() != mWidth ||
-             line[0] != Block::typeToSymbol(Block::WALL) ||
-             line.back() != Block::typeToSymbol(Block::WALL) )
+        if ( (int)line.size() != mWidth
+             || !validOuterBlock(line[0])
+             || !validOuterBlock(line.back()) )
             throw MapLoadException(MapLoadException::INVALID_MAP);
 
         map.push_back(new char[mWidth+1]);
@@ -102,7 +103,7 @@ void Map::load(const char *file, Pos & playerPos, Pos &enemyPos)
         for ( size_t j = 0 ; j < line.size() ; j++ )
         {
             char c = line[j];
-            if ( !Block::validSymbol(c) )
+            if ( !validInnerBlock(c) )
                 throw MapLoadException(MapLoadException::INVALID_MAP);
             map[i][j] = c;
             if ( c == Block::typeToSymbol(Block::PLAYER) )
@@ -119,6 +120,12 @@ void Map::load(const char *file, Pos & playerPos, Pos &enemyPos)
                 enemyFound = true;
                 enemyPos = Pos(j, i);
             }
+            else if ( c == Block::typeToSymbol(Block::TRAP_OPENED)
+                      || c == Block::typeToSymbol(Block::TRAP_CLOSED) )
+            {
+                map[i][j] = Block::typeToSymbol(Block::EMPTY);
+                trapsPos.insert(Pos(j, i));
+            }
         }
     }
 
@@ -128,7 +135,7 @@ void Map::load(const char *file, Pos & playerPos, Pos &enemyPos)
     /* check last line */
     for ( int i = 1 ; i < mWidth-1 ; i++ )
     {
-        if ( map.back()[i] != Block::typeToSymbol(Block::WALL) )
+        if ( !validOuterBlock(map.back()[i]) )
             throw MapLoadException(MapLoadException::INVALID_MAP);
     }
 }
@@ -152,6 +159,8 @@ char & Map::at(const Pos &pos)
 
 char Map::get(const Pos &pos) const
 {
+    assert ( pos.y >= 0 && pos.y < height() );
+    assert ( pos.x >= 0 && pos.x < width() );
     return map[pos.y][pos.x];
 }
 
@@ -170,4 +179,24 @@ void Map::clearMap()
     for ( auto line : map )
         delete [] line;
     map.clear();
+}
+
+bool Map::validOuterBlock(char symbol) const
+{
+    return symbol == Block::typeToSymbol(Block::EMPTY)
+            || symbol == Block::typeToSymbol(Block::WALL)
+            || symbol == Block::typeToSymbol(Block::TRAP_CLOSED)
+            || symbol == Block::typeToSymbol(Block::TRAP_OPENED)
+            || symbol == Block::typeToSymbol(Block::DESTRUCTABLE);
+}
+
+bool Map::validInnerBlock(char symbol) const
+{
+    return symbol == Block::typeToSymbol(Block::EMPTY)
+            || symbol == Block::typeToSymbol(Block::WALL)
+            || symbol == Block::typeToSymbol(Block::PLAYER)
+            || symbol == Block::typeToSymbol(Block::ENEMY)
+            || symbol == Block::typeToSymbol(Block::TRAP_CLOSED)
+            || symbol == Block::typeToSymbol(Block::TRAP_OPENED)
+            || symbol == Block::typeToSymbol(Block::DESTRUCTABLE);
 }

@@ -19,7 +19,6 @@ struct Pos
     bool operator<(const Pos & pos) const;
 
     static int manhattanDistance(const Pos & a, const Pos & b);
-    static int airDistance(const Pos & a, const Pos & b);
 };
 
 #endif

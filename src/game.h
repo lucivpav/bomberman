@@ -38,7 +38,9 @@ public:
     const Bomb * getBomb(const Pos & p) const;
     const TimedBomb & getTimedBomb(const Pos & p) const;
     bool isFlameAt(const Pos & p) const;
-    bool isTrapAt(const Pos & p) const;
+    const Trap * trapAt(const Pos & p) const;
+
+    bool withinBounds(const Pos & pos) const;
 private:
     Map map;
     Player * player;
@@ -63,13 +65,17 @@ private:
     void handleFlames();
     void genFlames(Pos from, const Pos &to);
 
-    void genGhosts();
-    void genGhost();
+    void getCandidates(std::vector<Pos> & out) const;
+
+    void genGhosts(std::vector<Pos> candidates);
     void handleGhosts();
 
-    void genTraps();
-    void genTrap();
+    void genTraps(std::vector<Pos> candidates);
     void handleTraps();
+
+    // debug
+    void drawPath() const;
+    bool shouldDrawPath;
 };
 
 #endif

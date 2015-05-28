@@ -1,5 +1,7 @@
 #include "pos.h"
 
+#include <cassert>
+
 Pos::Pos()
 {
 
@@ -48,15 +50,14 @@ bool Pos::operator!=(const Pos &pos) const
 int Pos::manhattanDistance(const Pos &a, const Pos &b)
 {
     Pos toReturn = a - b;
+    if ( toReturn.x < 0 )
+        toReturn.x *= (-1);
+    if ( toReturn.y < 0 )
+        toReturn.y *= (-1);
+    assert ( toReturn.x >= 0 );
+    assert ( toReturn.y >= 0 );
     return toReturn.x + toReturn.y;
 }
-
-int Pos::airDistance(const Pos &a, const Pos &b)
-{
-    Pos toReturn = a - b;
-    return sqrt(toReturn.x * toReturn.x + toReturn.y * toReturn.y);
-}
-
 
 bool Pos::operator<(const Pos &pos) const
 {

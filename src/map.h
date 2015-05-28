@@ -2,6 +2,7 @@
 #define MAP_H
 
 #include <vector>
+#include <set>
 
 #include "block.h"
 #include "player.h"
@@ -19,8 +20,16 @@ public:
     };
 
     Map();
-    Map(const char * file, Pos & playerPos, Pos & enemyPos); /* throws MapLoadException */
-    void load(const char * file, Pos & playerPos, Pos & enemyPos); /* throws MapLoadException */
+
+    Map(const char * file,
+        Pos & playerPos,
+        Pos & enemyPos,
+        std::set<Pos> & trapsPos); /* throws MapLoadException */
+
+    void load(const char * file,
+              Pos & playerPos,
+              Pos & enemyPos,
+              std::set<Pos> & trapsPos); /* throws MapLoadException */
     ~Map();
 
     void draw();
@@ -35,6 +44,8 @@ private:
 
     int mWidth;
     void clearMap();
+    bool validOuterBlock(char symbol) const;
+    bool validInnerBlock(char symbol) const;
 
     static const int maxWidth = 80;
     static const int maxHeight = 23;

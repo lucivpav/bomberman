@@ -8,12 +8,6 @@ char Block::typeToSymbol(Block::Type t)
     return signs[t];
 }
 
-bool Block::validSymbol(char symbol)
-{
-    Type t = symbolToType(symbol);
-    return (int)t == -1 ? false : true;
-}
-
 bool Block::isSolid(char symbol)
 {
     Type t = symbolToType(symbol);

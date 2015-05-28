@@ -4,14 +4,15 @@
 class Block
 {
 public:
-    enum Type { EMPTY = 0,
-                WALL,
-                PLAYER,
-                ENEMY,
+    // editable == may show up in the map file
+    enum Type { EMPTY = 0, // editable
+                WALL, // editable
+                PLAYER, // editable
+                ENEMY, // editable
                 GHOST,
-                TRAP_CLOSED,
-                TRAP_OPENED,
-                DESTRUCTABLE,
+                TRAP_CLOSED, // editable
+                TRAP_OPENED, // editable
+                DESTRUCTABLE, // editable
                 TIMED_BOMB,
                 FLAME,
                 BONUS_BOMB = 10,
@@ -21,7 +22,6 @@ public:
                 REMOTE_BOMB };
     static char typeToSymbol(Type t);
     static Type symbolToType(char symbol);
-    static bool validSymbol(char symbol);
     static bool isSolid(char symbol);
 private:
     /* todo: ensure items like flames cannot be loaded from a file */
