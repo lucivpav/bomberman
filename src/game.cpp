@@ -27,6 +27,7 @@ Game::Game(bool genTraps)
             mTraps.insert(std::make_pair(trap, Trap(map, trap)));
     if ( genTraps )
         Game::genTraps(candidates);
+
     loop();
 }
 
@@ -48,6 +49,8 @@ bool Game::canPlantBomb(const Player &player) const
         return false;
     auto trap = mTraps.find(p);
     if ( trap != mTraps.end() && trap->second.isOpen() )
+        return false;
+    if ( flames.count(p) ) // disallow bomb placement beneath flames
         return false;
     return true;
 }
@@ -89,6 +92,8 @@ void Game::loop()
             drawPath();
         drawStatus();
         refresh();
+
+        assert ( player->getPos() != enemy->getPos() );
     }
 }
 
@@ -137,9 +142,7 @@ void Game::keyEvent(int key)
             return;
         if ( player->hasRemoteBombBonus() )
         {
-            if ( !player->plantRemoteBomb() )
-                return;
-            map.at(p) = Block::typeToSymbol(Block::REMOTE_BOMB);
+            player->plantRemoteBomb();
         }
         else
         {
@@ -273,7 +276,7 @@ bool Game::moveGhost(Ghost &g, const Pos & offset)
     return true;
 }
 
-const Map &Game::getMap() const
+Map &Game::getMap()
 {
     return map;
 }
@@ -361,11 +364,18 @@ void Game::bombExplosion(const Bomb & b)
 {
     Pos bombPos = b.getPos();
     int radius = b.getRadius();
+
+    if ( bombPos == player->getPos() )
+        map.at(bombPos) = Block::typeToSymbol(Block::PLAYER);
+    else if ( bombPos == enemy->getPos() )
+        map.at(bombPos) = Block::typeToSymbol(Block::ENEMY);
+    else
+        map.at(bombPos) = Block::typeToSymbol(Block::EMPTY);
+
     if ( player->getPos() == bombPos )
         player->die();
     if ( enemy->getPos() == bombPos )
         enemy->die();
-    map.at(bombPos) = Block::typeToSymbol(Block::EMPTY);
     flames.insert(std::make_pair(bombPos, Flame(bombPos)));
     genFlames(bombPos + Pos(1, 0), bombPos + Pos(radius, 0));
     genFlames(bombPos + Pos(-1, 0), bombPos + Pos(-radius, 0));

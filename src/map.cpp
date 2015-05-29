@@ -154,6 +154,8 @@ void Map::draw()
 
 char & Map::at(const Pos &pos)
 {
+    assert ( pos.y >= 0 && pos.y < height() );
+    assert ( pos.x >= 0 && pos.x < width() );
     return map[pos.y][pos.x];
 }
 

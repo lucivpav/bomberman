@@ -39,7 +39,7 @@ void AIPlayer::makeDecision()
 
     if ( !mIdle )
     {
-        if ( !mMoveCountdown.expired() )
+        if ( !mMoveCountdown.expired(hasSpeedBonus() ? 50 : 100) )
             return;
     }
 
@@ -101,8 +101,8 @@ AIPlayer::Action AIPlayer::getBestAction()
             minStepsRequired = steps;
         }
 
-        if ( steps == 666 )
-            updateBestAction(DETONATE_BOMBS, action, utility);
+        if ( minStepsRequired == 666 )
+            action = IDLE;
         return action;
     }
     mPathfinderHint.clear();
@@ -112,6 +112,7 @@ AIPlayer::Action AIPlayer::getBestAction()
     updateBestAction(MOVE_UP, action, utility);
     updateBestAction(MOVE_DOWN, action, utility);
     updateBestAction(PLANT_BOMB, action, utility);
+    updateBestAction(DETONATE_BOMBS, action, utility);
     return action;
 }
 
@@ -283,7 +284,7 @@ const Bomb * AIPlayer::bombThreatDirection(const Pos & location, const Pos & off
             return Pos::manhattanDistance(location, b->getPos())
                     > b->getRadius() ? 0 : b;
         else
-            continue;
+            return 0;
     }
 }
 
@@ -343,9 +344,12 @@ bool AIPlayer::bonusOpportunity(const Pos &offset) const
     }
 }
 
+/* check for curPos safety before calling this */
 int AIPlayer::detonateBombsUtility() const
 {
-    return 0;
+    if ( hasRemoteBombOnMap() )
+        return 1000;
+    return -1;
 }
 
 void AIPlayer::moveAction(const Pos &offset)
@@ -355,7 +359,10 @@ void AIPlayer::moveAction(const Pos &offset)
 
 void AIPlayer::plantBombAction()
 {
-    game->plantTimedBomb(*this);
+    if ( hasRemoteBombBonus() )
+        plantRemoteBomb();
+    else
+        game->plantTimedBomb(*this);
 }
 
 int AIPlayer::distanceToEnemy(Pos from, std::vector<Pos> * hint) const

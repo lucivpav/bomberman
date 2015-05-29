@@ -34,7 +34,7 @@ public:
     void movePlayer(Player &p, const Pos &offset);
     bool canMoveGhost(const Pos & where) const;
     bool moveGhost(Ghost & g, const Pos & offset); /* returns false when dies */
-    const Map & getMap() const;
+    Map & getMap() ;
     const Bomb * getBomb(const Pos & p) const;
     const TimedBomb & getTimedBomb(const Pos & p) const;
     bool isFlameAt(const Pos & p) const;

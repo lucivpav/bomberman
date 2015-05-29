@@ -50,15 +50,24 @@ bool Player::plantRemoteBomb()
     bombsAvail--;
     RemoteBomb b(this, pos, bombRadius);
     remoteBombs.push_back(b);
+    game->getMap().at(getPos()) = Block::typeToSymbol(Block::REMOTE_BOMB);
     return true;
+}
+
+bool Player::hasRemoteBombOnMap() const
+{
+    return !remoteBombs.empty();
 }
 
 void Player::detonateRemoteBombs()
 {
-    for ( const auto & bomb : remoteBombs )
-        game->bombExplosion(bomb);
-    bombsAvail += remoteBombs.size();
-    remoteBombs.clear();
+    while ( !remoteBombs.empty() )
+    {
+        Bomb b = remoteBombs.back();
+        remoteBombs.pop_back();
+        game->bombExplosion(b); // this may detonate own bombs
+        bombsAvail++;
+    }
 }
 
 const RemoteBomb * Player::getRemoteBomb(const Pos &p) const
@@ -78,9 +87,10 @@ bool Player::detonateRemoteBomb(const Pos &p)
           it++ )
         if ( it->getPos() == p )
         {
-            game->bombExplosion(*it);
-            bombsAvail++;
+            Bomb b = *it;
             remoteBombs.erase(it);
+            game->bombExplosion(b); // this may detonate own bombs ( even self )
+            bombsAvail++;
             return true;
         }
     return false;

@@ -20,6 +20,7 @@ public:
 
     bool plantBomb(Bomb &b); /* returns false if no bombs left */
     bool plantRemoteBomb();
+    bool hasRemoteBombOnMap() const;
     void detonateRemoteBombs();
     const RemoteBomb * getRemoteBomb(const Pos & p) const;
     bool detonateRemoteBomb(const Pos & p);
