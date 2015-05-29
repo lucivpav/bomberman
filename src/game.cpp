@@ -260,6 +260,7 @@ bool Game::canMoveGhost(const Pos & where) const
     if ( !withinBounds(where) )
         return false;
     return map.get(where) != Block::typeToSymbol(Block::WALL)
+            && map.get(where) != Block::typeToSymbol(Block::NICE_WALL)
             && mGhosts.find(where) == mGhosts.end();
 }
 

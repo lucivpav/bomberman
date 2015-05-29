@@ -187,6 +187,7 @@ bool Map::validOuterBlock(char symbol) const
 {
     return symbol == Block::typeToSymbol(Block::EMPTY)
             || symbol == Block::typeToSymbol(Block::WALL)
+            || symbol == Block::typeToSymbol(Block::NICE_WALL)
             || symbol == Block::typeToSymbol(Block::TRAP_CLOSED)
             || symbol == Block::typeToSymbol(Block::TRAP_OPENED)
             || symbol == Block::typeToSymbol(Block::DESTRUCTABLE);
@@ -196,6 +197,7 @@ bool Map::validInnerBlock(char symbol) const
 {
     return symbol == Block::typeToSymbol(Block::EMPTY)
             || symbol == Block::typeToSymbol(Block::WALL)
+            || symbol == Block::typeToSymbol(Block::NICE_WALL)
             || symbol == Block::typeToSymbol(Block::PLAYER)
             || symbol == Block::typeToSymbol(Block::ENEMY)
             || symbol == Block::typeToSymbol(Block::TRAP_CLOSED)

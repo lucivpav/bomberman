@@ -419,7 +419,8 @@ int AIPlayer::distanceToEnemy(Pos from, std::vector<Pos> * hint) const
             Pos & expand = expanded[i];
             if ( closed.count(expand) )
                 continue;
-            if ( game->getMap().get(expand) == Block::typeToSymbol(Block::WALL) )
+            if ( game->getMap().get(expand) == Block::typeToSymbol(Block::WALL)
+                 || game->getMap().get(expand) == Block::typeToSymbol(Block::NICE_WALL) )
             {
                 closed.insert(expand);
                 continue;
