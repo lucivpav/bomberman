@@ -114,7 +114,11 @@ bool Player::hasRemoteBombBonus() const
 void Player::addBomb()
 {
     if ( bombsAvail == maxBombs )
+    {
+        if ( maxBombs >= 4 )
+            return;
         maxBombs++;
+    }
     bombsAvail++;
 }
 
@@ -130,7 +134,7 @@ int Player::getBombsAvail() const
 
 void Player::upgradeBombRadius()
 {
-    if ( bombRadius < 100 )
+    if ( bombRadius < 10 )
         bombRadius++;
 }
 
