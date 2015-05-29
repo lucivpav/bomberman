@@ -6,8 +6,10 @@
 class SingleplayerItem : public MenuItem
 {
 public:
-    SingleplayerItem(const char * name);
+    SingleplayerItem(const char * name, const char *argv0);
     bool action();
+private:
+    const char * mArgv0;
 };
 
 class MultiplayerItem : public MenuItem
@@ -24,13 +26,11 @@ public:
     bool action();
 };
 
-class MainMenu
+class MainMenu : public Menu
 {
 public:
-    MainMenu();
+    MainMenu(const char * argv0);
     ~MainMenu();
-private:
-    Menu menu;
 };
 
 #endif

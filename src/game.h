@@ -24,7 +24,7 @@ private:
 class Game
 {
 public:
-    Game(bool genTraps);
+    Game(const std::string & levelPath, bool genTraps);
     ~Game();
 
     bool canPlantBomb(const Player & player) const;
@@ -42,6 +42,7 @@ public:
 
     bool withinBounds(const Pos & pos) const;
 private:
+    std::string mLevelPath;
     Map map;
     Player * player;
     AIPlayer * enemy;
@@ -53,6 +54,11 @@ private:
     std::map<Pos, Trap> mTraps; // virtual
 
     bool expired;
+    bool mShouldGenTraps;
+
+    bool load(const std::string & levelPath);
+    void winAction();
+    void loseAction();
 
     void loop();
     void keyEvent(int key);

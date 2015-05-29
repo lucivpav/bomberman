@@ -33,6 +33,11 @@ void Player::die()
         detonateRemoteBombs();
 }
 
+bool Player::isDead() const
+{
+    return !lives;
+}
+
 bool Player::plantBomb(Bomb & b)
 {
     if ( !bombsAvail )

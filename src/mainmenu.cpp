@@ -3,8 +3,10 @@
 #include <ncurses.h>
 
 #include "game.h"
+#include "levelmenu.h"
 
-MainMenu::MainMenu()
+MainMenu::MainMenu(const char * argv0)
+    :Menu()
 {
     initscr();
     noecho();
@@ -13,15 +15,15 @@ MainMenu::MainMenu()
     curs_set(FALSE);
     timeout(33);
 
-    SingleplayerItem  * singleplayer = new SingleplayerItem("SINGLEPLAYER");
+    SingleplayerItem  * singleplayer = new SingleplayerItem("SINGLEPLAYER", argv0);
     MultiplayerItem  * multiplayer = new MultiplayerItem("MULTIPLAYER");
     ExitItem * exit = new ExitItem("EXIT");
 
-    menu.addItem(singleplayer);
-    menu.addItem(multiplayer);
-    menu.addItem(exit);
+    addItem(singleplayer);
+    addItem(multiplayer);
+    addItem(exit);
 
-    menu.loop();
+    loop();
 }
 
 
@@ -31,14 +33,14 @@ MainMenu::~MainMenu()
 }
 
 
-SingleplayerItem::SingleplayerItem(const char *name)
-    :MenuItem(name)
+SingleplayerItem::SingleplayerItem(const char *name, const char * argv0)
+    :MenuItem(name), mArgv0(argv0)
 {
 }
 
 bool SingleplayerItem::action()
 {
-    Game game(true);
+    LevelMenu levelMenu(mArgv0);
     return false;
 }
 

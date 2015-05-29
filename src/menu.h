@@ -19,11 +19,11 @@ class Menu
 {
 public:
     Menu();
-    ~Menu();
+    virtual ~Menu();
     void addItem(MenuItem *item);
     void loop();
-    void keyEvent(int key);
-    void drawEvent();
+    virtual void keyEvent(int key);
+    virtual void drawEvent();
 private:
     std::vector<MenuItem*> items;
     int pos;

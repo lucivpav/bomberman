@@ -17,6 +17,7 @@ public:
     Pos getPos() const;
     void setPos(const Pos & pos);
     void die();
+    bool isDead() const;
 
     bool plantBomb(Bomb &b); /* returns false if no bombs left */
     bool plantRemoteBomb();

@@ -57,6 +57,10 @@ void Menu::keyEvent(int key)
     {
         expired = items[pos-1]->action();
     }
+    else if ( key == 'q' )
+    {
+        expired = true;
+    }
 }
 
 void Menu::drawEvent()

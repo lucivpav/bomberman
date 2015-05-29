@@ -6,28 +6,15 @@
 #include <ctime>
 #include <cassert>
 
-Game::Game(bool genTraps)
-    :expired(false), shouldDrawPath(false)
+Game::Game(const std::string & levelPath, bool genTraps)
+    : player(0),
+      enemy(0),
+      expired(false),
+      mShouldGenTraps(genTraps),
+      shouldDrawPath(false)
 {
-    Pos playerPos;
-    Pos enemyPos;
-    std::set<Pos> trapsPos;
-
-    map.load("levels/4", playerPos, enemyPos, trapsPos);
-    player = new Player(this, playerPos, 3, 3);
-    enemy = new AIPlayer(this, player, enemyPos, 3, 3);
-
     srand(time(0));
-    std::vector<Pos> candidates;
-    getCandidates(candidates);
-    genGhosts(candidates);
-
-    if ( !trapsPos.empty() )
-        for ( const auto & trap : trapsPos )
-            mTraps.insert(std::make_pair(trap, Trap(map, trap)));
-    if ( genTraps )
-        Game::genTraps(candidates);
-
+    load(levelPath);
     loop();
 }
 
@@ -83,6 +70,7 @@ void Game::loop()
         enemy->makeDecision();
         handleGhosts();
         handleTraps();
+        assert ( player->getPos() != enemy->getPos() );
 
         map.draw();
         drawTraps();
@@ -93,7 +81,10 @@ void Game::loop()
         drawStatus();
         refresh();
 
-        assert ( player->getPos() != enemy->getPos() );
+        if ( player->isDead() )
+            loseAction();
+        else if ( enemy->isDead() )
+            winAction();
     }
 }
 
@@ -157,6 +148,16 @@ void Game::keyEvent(int key)
     else if ( key == 'p' ) // debug
     {
         shouldDrawPath = !shouldDrawPath;
+    }
+    else if ( key == 'u' )
+    {
+        for ( int i = 0 ; i < 40 ; i++ )
+            player->die();
+    }
+    else if ( key == 'i' )
+    {
+        for ( int i = 0 ; i < 40 ; i++ )
+            enemy->die();
     }
 }
 
@@ -547,6 +548,85 @@ bool Game::withinBounds(const Pos &pos) const
 {
     return pos.x > 0 && pos.x < map.width()-1
             && pos.y > 0 && pos.y < map.height()-1;
+}
+
+bool Game::load(const std::string & levelPath)
+{
+    mLevelPath = levelPath;
+    Pos playerPos;
+    Pos enemyPos;
+    std::set<Pos> trapsPos;
+
+    delete player;
+    delete enemy;
+    mTraps.clear();
+    timedBombs.clear();
+    flames.clear();
+    bonuses.clear();
+    mGhosts.clear();
+    mTraps.clear();
+
+    try
+    {
+        map.load(levelPath.c_str(), playerPos, enemyPos, trapsPos);
+    }
+    catch ( ... )
+    {
+        return false;
+    }
+
+    player = new Player(this, playerPos, 3, 3);
+    enemy = new AIPlayer(this, player, enemyPos, 3, 3);
+
+    std::vector<Pos> candidates;
+    getCandidates(candidates);
+    genGhosts(candidates);
+
+    if ( !trapsPos.empty() )
+        for ( const auto & trap : trapsPos )
+            mTraps.insert(std::make_pair(trap, Trap(map, trap)));
+    if ( mShouldGenTraps )
+        Game::genTraps(candidates);
+    return true;
+}
+
+void Game::winAction()
+{
+    Countdown notifyExpire(2000);
+    int width, height;
+    std::string msg = "You won";
+    getmaxyx(stdscr, height, width);
+
+    clear();
+    mvprintw(height/2, width/2 - msg.size()/2, msg.c_str());
+    refresh();
+
+    while ( !notifyExpire.expired() )
+        ;
+
+    std::string lvlPath = mLevelPath;
+    int lvlNr = lvlPath[lvlPath.size()-1]-48;
+    lvlPath[lvlPath.size()-1] = (lvlNr+1+48);
+    load(lvlPath);
+    clear();
+}
+
+void Game::loseAction()
+{
+    Countdown notifyExpire(2000);
+    int width, height;
+    std::string msg = "You lost";
+    getmaxyx(stdscr, height, width);
+
+    clear();
+    mvprintw(height/2, width/2 - msg.size()/2, msg.c_str());
+    refresh();
+
+    while ( !notifyExpire.expired() )
+        ;
+
+    load(mLevelPath);
+    clear();
 }
 
 void Game::drawPath() const
