@@ -6,7 +6,7 @@ all: bomberman
 
 tests: test
 
-OBJECTS=map.o block.o game.o pos.o countdown.o player.o ai_player.o menu.o mainmenu.o levelmenu.o bomb.o ghost.o trap.o
+OBJECTS=map.o block.o game.o pos.o countdown.o player.o ai_player.o ui.o mainmenu.o singleplayermenu.o multiplayermenu.o hostmenu.o connectmenu.o bomb.o ghost.o trap.o
 
 bomberman: main.o $(OBJECTS)
 	$(CC) $(CFLAGS) main.o $(OBJECTS) -o bomberman $(LDFLAGS)
@@ -41,14 +41,23 @@ player.o: src/player.cpp
 ai_player.o: src/ai_player.cpp
 	$(CC) -c $(CFLAGS) src/ai_player.cpp
 
-menu.o: src/menu.cpp
-	$(CC) -c $(CFLAGS) src/menu.cpp
+ui.o: src/ui.cpp
+	$(CC) -c $(CFLAGS) src/ui.cpp
 
 mainmenu.o: src/mainmenu.cpp
 	$(CC) -c $(CFLAGS) src/mainmenu.cpp
 
-levelmenu.o: src/levelmenu.cpp
-	$(CC) -c $(CFLAGS) src/levelmenu.cpp
+singleplayermenu.o: src/singleplayermenu.cpp
+	$(CC) -c $(CFLAGS) src/singleplayermenu.cpp
+
+multiplayermenu.o: src/multiplayermenu.cpp
+	$(CC) -c $(CFLAGS) src/multiplayermenu.cpp
+
+hostmenu.o: src/hostmenu.cpp
+	$(CC) -c $(CFLAGS) src/hostmenu.cpp
+
+connectmenu.o: src/connectmenu.cpp
+	$(CC) -c $(CFLAGS) src/connectmenu.cpp
 
 bomb.o: src/bomb.cpp
 	$(CC) -c $(CFLAGS) src/bomb.cpp

@@ -1,36 +1,52 @@
 #ifndef MAINMENU_H
 #define MAINMENU_H
 
-#include "menu.h"
+#include "ui.h"
 
-class SingleplayerItem : public MenuItem
+using namespace UI;
+
+class SingleplayerButton : public Button
 {
 public:
-    SingleplayerItem(const char * name, const char *argv0);
-    bool action();
+    SingleplayerButton(const char * name,
+                       const std::string & levelsPath);
+    virtual ~SingleplayerButton() = default;
+
+    virtual bool action();
 private:
-    const char * mArgv0;
+    std::string mLevelsPath;
 };
 
-class MultiplayerItem : public MenuItem
+class MultiplayerButton : public Button
 {
 public:
-    MultiplayerItem(const char * name);
-    bool action();
+    MultiplayerButton(const char * name,
+                      const std::string & levelsPath);
+    virtual ~MultiplayerButton() = default;
+
+    virtual bool action();
+private:
+    std::string mLevelsPath;
 };
 
-class ExitItem : public MenuItem
+class ExitButton : public Button
 {
 public:
-    ExitItem(const char * name);
-    bool action();
+    ExitButton(const char * name);
+    virtual ~ExitButton() = default;
+
+    virtual bool action();
 };
 
 class MainMenu : public Menu
 {
 public:
     MainMenu(const char * argv0);
-    ~MainMenu();
+    virtual ~MainMenu() = default;
+private:
+    std::string mLevelsPath;
+
+    void parseLevelsPath(const char * argv0);
 };
 
 #endif

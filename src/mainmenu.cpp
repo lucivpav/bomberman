@@ -1,67 +1,65 @@
 #include "mainmenu.h"
 
-#include <ncurses.h>
+#include "singleplayermenu.h"
+#include "multiplayermenu.h"
 
-#include "game.h"
-#include "levelmenu.h"
+SingleplayerButton::SingleplayerButton(const char * name,
+                                       const std::string &levelsPath)
+    :Button(name), mLevelsPath(levelsPath)
+{
+}
+
+bool SingleplayerButton::action()
+{
+    SingleplayerMenu menu(mLevelsPath);
+    return false;
+}
+
+
+MultiplayerButton::MultiplayerButton(const char * name,
+                                     const std::string & levelsPath)
+    :Button(name), mLevelsPath(levelsPath)
+{
+}
+
+bool MultiplayerButton::action()
+{
+    MultiplayerMenu menu(mLevelsPath);
+    return false;
+}
+
+
+ExitButton::ExitButton(const char * name)
+    :Button(name)
+{
+}
+
+bool ExitButton::action()
+{
+    return true;
+}
 
 MainMenu::MainMenu(const char * argv0)
-    :Menu()
+    :Menu("Bomberman")
 {
-    initscr();
-    noecho();
-    keypad(stdscr, TRUE);
-    cbreak();
-    curs_set(FALSE);
-    timeout(33);
+    parseLevelsPath(argv0);
 
-    SingleplayerItem  * singleplayer = new SingleplayerItem("SINGLEPLAYER", argv0);
-    MultiplayerItem  * multiplayer = new MultiplayerItem("MULTIPLAYER");
-    ExitItem * exit = new ExitItem("EXIT");
-
-    addItem(singleplayer);
-    addItem(multiplayer);
-    addItem(exit);
+    addItem(new SingleplayerButton("Singleplayer", mLevelsPath));
+    addItem(new MultiplayerButton("Multiplayer", mLevelsPath));
+    addItem(new ExitButton("Exit"));
 
     loop();
 }
 
-
-MainMenu::~MainMenu()
+void MainMenu::parseLevelsPath(const char *argv0)
 {
-    endwin();
-}
-
-
-SingleplayerItem::SingleplayerItem(const char *name, const char * argv0)
-    :MenuItem(name), mArgv0(argv0)
-{
-}
-
-bool SingleplayerItem::action()
-{
-    LevelMenu levelMenu(mArgv0);
-    return false;
-}
-
-
-MultiplayerItem::MultiplayerItem(const char *name)
-    :MenuItem(name)
-{
-}
-
-bool MultiplayerItem::action()
-{
-    return false;
-}
-
-
-ExitItem::ExitItem(const char *name)
-    :MenuItem(name)
-{
-}
-
-bool ExitItem::action()
-{
-    return true;
+    /*
+         * gcc - FAIL
+         * ./gcc
+         * ope/asf/gcc
+         * ../.././../asf/ff/gcc
+         * ../gcc
+         */
+    std::string tmp(argv0);
+    mLevelsPath = tmp.substr(0, tmp.rfind("bomberman")) + "levels/";
 }
