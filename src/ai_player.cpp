@@ -10,18 +10,13 @@
 #include <algorithm>
 
 AIPlayer::AIPlayer(Game *g, Player *p, const Pos &pos, int lives, int bombs)
-    :Player(g, pos, lives, bombs),
+    :Enemy(g, pos, lives, bombs),
       enemy(p), mIdleCountdown(2000), mMoveCountdown(100), mIdle(false)
 {
 }
 
 AIPlayer::~AIPlayer()
 {
-}
-
-char AIPlayer::getSymbol() const
-{
-    return Block::typeToSymbol(Block::ENEMY);
 }
 
 void AIPlayer::makeDecision()
@@ -56,7 +51,7 @@ void AIPlayer::makeDecision()
     else if ( action == MOVE_DOWN )
         moveAction(Pos(0, 1));
     else if ( action == PLANT_BOMB )
-        plantBombAction();
+        game->plantBombAction(*this);
     else if ( action == DETONATE_BOMBS )
         detonateRemoteBombs();
 }
@@ -355,14 +350,6 @@ int AIPlayer::detonateBombsUtility() const
 void AIPlayer::moveAction(const Pos &offset)
 {
     game->movePlayer(*this, offset);
-}
-
-void AIPlayer::plantBombAction()
-{
-    if ( hasRemoteBombBonus() )
-        plantRemoteBomb();
-    else
-        game->plantTimedBomb(*this);
 }
 
 int AIPlayer::distanceToEnemy(Pos from, std::vector<Pos> * hint) const

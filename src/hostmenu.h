@@ -14,7 +14,7 @@ public:
     void hostInfo(std::string & levelsPath,
                   std::string & level,
                   bool & trapsEnabled,
-                  int & port) const;
+                  std::string &port) const;
 private:
     std::string mLevelsPath;
     List * mLevelList;

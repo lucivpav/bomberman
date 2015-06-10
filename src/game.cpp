@@ -6,15 +6,54 @@
 #include <ctime>
 #include <cassert>
 
-Game::Game(const std::string & levelPath, bool genTraps)
-    : player(0),
+#include "ui.h"
+#include "ai_player.h"
+#include "online_player.h"
+
+#include <unistd.h>
+
+Game::Game(const std::string & levelPath, bool genTraps,
+           const char * address,
+           const char * port)
+    : mIsOnlineGame(port),
+      mAddress(address ? address : ""),
+      mPort(port ? port : ""),
+      mListetningFinished(false),
+      player(0),
       enemy(0),
       expired(false),
       mShouldGenTraps(genTraps),
       shouldDrawPath(false)
 {
     srand(time(0));
-    load(levelPath);
+
+    if ( !load(levelPath) )
+        return;
+
+    if ( mIsOnlineGame )
+    {
+        mServer.setup(*player, *enemy, map);
+        std::thread t(&Game::listenThread, this);
+        t.detach();
+
+        UI::Notification("Listening...", "Cancel",
+                         &mListetningFinished, &mLock);
+
+        mLock.lock();
+        if ( !mListetningFinished ) // cancel pressed
+        {
+            mLock.unlock();
+            return;
+        }
+        mLock.unlock();
+
+        if ( !mConnected )
+        {
+            UI::Notification("Error: hosting a server failed.");
+            return;
+        }
+    }
+
     loop();
 }
 
@@ -22,6 +61,22 @@ Game::~Game()
 {
     delete player;
     delete enemy;
+}
+
+void Game::plantBombAction(Player &player)
+{
+    Pos p = player.getPos();
+    if ( map.at(p) != player.getSymbol()
+         && Block::isSolid(map.at(p)) )
+        return;
+    if ( player.hasRemoteBombBonus() )
+    {
+        player.plantRemoteBomb();
+    }
+    else
+    {
+        plantTimedBomb(player);
+    }
 }
 
 bool Game::canPlantBomb(const Player &player) const
@@ -57,6 +112,7 @@ void Game::plantTimedBomb(Player &player)
 void Game::loop()
 {
     clear();
+    bool firstRound = true;
     while (1)
     {
         if ( expired )
@@ -79,12 +135,22 @@ void Game::loop()
         if ( shouldDrawPath )
             drawPath();
         drawStatus();
-        refresh();
+
+        if ( !firstRound )
+            refresh();
+        else if ( mIsOnlineGame )
+        {
+            mServer.initOnlineGame();
+            firstRound = false;
+        }
 
         if ( player->isDead() )
             loseAction();
         else if ( enemy->isDead() )
             winAction();
+
+        if ( mIsOnlineGame )
+            mServer.update();
     }
 }
 
@@ -127,23 +193,11 @@ void Game::keyEvent(int key)
     }
     else if ( key == 'b' )
     {
-        Pos p = player->getPos();
-        if ( Block::symbolToType(map.at(p)) != Block::PLAYER
-             && Block::isSolid(map.at(p)) )
-            return;
-        if ( player->hasRemoteBombBonus() )
-        {
-            player->plantRemoteBomb();
-        }
-        else
-        {
-            plantTimedBomb(*player);
-        }
+        plantBombAction(*player);
     }
     else if ( key == ' ' )
     {
-        if ( player->hasRemoteBombBonus() )
-            player->detonateRemoteBombs();
+        player->detonateRemoteBombs();
     }
     else if ( key == 'p' ) // debug
     {
@@ -275,6 +329,10 @@ bool Game::moveGhost(Ghost &g, const Pos & offset)
 
     if ( player->getPos() == newPos )
         player->die();
+
+    if ( mIsOnlineGame && enemy->getPos() == newPos )
+        enemy->die();
+
     return true;
 }
 
@@ -551,6 +609,21 @@ bool Game::withinBounds(const Pos &pos) const
             && pos.y > 0 && pos.y < map.height()-1;
 }
 
+std::chrono::milliseconds Game::getTimestamp()
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>
+            (std::chrono::system_clock::now().time_since_epoch());
+}
+
+void Game::listenThread()
+{
+    mConnected = mServer.connect(mAddress.c_str(),
+                                  mPort.c_str());
+    mLock.lock();
+    mListetningFinished = true;
+    mLock.unlock();
+}
+
 bool Game::load(const std::string & levelPath)
 {
     mLevelPath = levelPath;
@@ -577,7 +650,11 @@ bool Game::load(const std::string & levelPath)
     }
 
     player = new Player(this, playerPos, 3, 3);
-    enemy = new AIPlayer(this, player, enemyPos, 3, 3);
+
+    if ( mIsOnlineGame )
+        enemy = new OnlinePlayer(this, enemyPos, 3, 3, &mServer);
+    else
+        enemy = new AIPlayer(this, player, enemyPos, 3, 3);
 
     std::vector<Pos> candidates;
     getCandidates(candidates);
@@ -632,6 +709,6 @@ void Game::loseAction()
 
 void Game::drawPath() const
 {
-    for ( const auto & block : enemy->mPath )
-        mvaddch(block.y, block.x, '~');
+   // for ( const auto & block : enemy->mPath )
+   //     mvaddch(block.y, block.x, '~');
 }

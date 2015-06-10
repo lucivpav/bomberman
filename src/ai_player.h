@@ -1,19 +1,19 @@
 #ifndef AI_PLAYER_H
 #define AI_PLAYER_H
 
-#include "player.h"
+#include "enemy.h"
 #include "countdown.h"
 
 #include <map>
 #include <vector>
 
-class AIPlayer : public Player
+class AIPlayer : public Enemy
 {
 public:
     AIPlayer(Game * g, Player * p, const Pos & pos, int lives, int bombs);
     virtual ~AIPlayer();
-    virtual char getSymbol() const;
-    void makeDecision();
+
+    virtual void makeDecision();
 
     // debug
     mutable std::vector<Pos> mPath;
@@ -33,7 +33,6 @@ private:
     int detonateBombsUtility() const;
 
     void moveAction(const Pos & offset);
-    void plantBombAction();
 
     bool canFlee(const Bomb &threat) const;
     int canFleeDirection(const Bomb & threat, Pos offset) const;

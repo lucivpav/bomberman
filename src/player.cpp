@@ -66,6 +66,9 @@ bool Player::hasRemoteBombOnMap() const
 
 void Player::detonateRemoteBombs()
 {
+    if ( !hasRemoteBombBonus() )
+        return;
+
     while ( !remoteBombs.empty() )
     {
         Bomb b = remoteBombs.back();

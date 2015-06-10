@@ -52,10 +52,12 @@ std::string UI::Button::drawEvent(bool selected)
     return mName;
 }
 
-UI::Menu::Menu(const char * name)
+UI::Menu::Menu(const char * name, bool *loopTill, std::mutex *lock)
     :mPos(1),
       mExpired(false),
-      mName(name)
+      mName(name),
+      mLoopTill(loopTill),
+      mLock(lock)
 {
 
 }
@@ -77,6 +79,16 @@ void UI::Menu::loop()
     {
         if ( mExpired )
             break;
+        if ( mLoopTill && mLock )
+        {
+            mLock->lock();
+            if ( *mLoopTill )
+            {
+                mLock->unlock();
+                break;
+            }
+            mLock->unlock();
+        }
         int c = getch();
         if ( c != ERR )
             keyEvent(c);
@@ -90,12 +102,12 @@ void UI::Menu::keyEvent(int key)
 {
     assert ( mItems.size() );
 
-    if ( key == KEY_DOWN || key == 's' )
+    if ( key == KEY_DOWN /*|| key == 's'*/ )
     {
         if ( mPos < (int)mItems.size() )
             mPos++;
     }
-    else if ( key == KEY_UP || key == 'w' )
+    else if ( key == KEY_UP /*|| key == 'w'*/ )
     {
         if ( mPos > 1 )
             mPos--;
@@ -242,4 +254,29 @@ std::string UI::InputField::drawEvent(bool selected)
 std::string UI::InputField::content() const
 {
     return mContent;
+}
+
+UI::Notification::Notification(const char * text,
+                               const char * buttonText,
+                               bool * loopTill,
+                               std::mutex * lock)
+    :Menu(text, loopTill, lock)
+{
+    if ( buttonText )
+        addItem( new OkButton(buttonText) );
+    else
+        addItem( new OkButton("Ok") );
+
+    loop();
+}
+
+UI::Notification::OkButton::OkButton(const char * name)
+    :Button(name)
+{
+
+}
+
+bool UI::Notification::OkButton::action()
+{
+    return true;
 }

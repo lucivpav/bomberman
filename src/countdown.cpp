@@ -1,7 +1,9 @@
 #include "countdown.h"
 
+#include "game.h"
+
 Countdown::Countdown(int milliseconds)
-    :mPrev(getTimestamp()), mPeriod(milliseconds)
+    :mPrev(Game::getTimestamp()), mPeriod(milliseconds)
 {
 
 }
@@ -9,7 +11,7 @@ Countdown::Countdown(int milliseconds)
 
 bool Countdown::expired(int milliseconds)
 {
-    auto cur = getTimestamp();
+    auto cur = Game::getTimestamp();
     if ( (cur - mPrev).count() < mPeriod )
         return false;
     else
@@ -19,10 +21,4 @@ bool Countdown::expired(int milliseconds)
         mPrev = cur;
         return true;
     }
-}
-
-std::chrono::milliseconds Countdown::getTimestamp() const
-{
-    return std::chrono::duration_cast<std::chrono::milliseconds>
-            (std::chrono::system_clock::now().time_since_epoch());
 }

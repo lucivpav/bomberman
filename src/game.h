@@ -5,11 +5,14 @@
 #include "block.h"
 #include "bomb.h"
 #include "player.h"
-#include "ai_player.h"
+#include "enemy.h"
 #include "ghost.h"
 #include "trap.h"
+#include "server.h"
 
 #include <map>
+#include <thread>
+#include <mutex>
 
 class Bonus
 {
@@ -24,8 +27,11 @@ private:
 class Game
 {
 public:
-    Game(const std::string & levelPath, bool genTraps);
+    Game(const std::string & levelPath, bool genTraps,
+         const char * address = 0, const char * port = 0);
     ~Game();
+
+    void plantBombAction(Player & player);
 
     bool canPlantBomb(const Player & player) const;
     void plantTimedBomb(Player & player);
@@ -41,11 +47,22 @@ public:
     const Trap * trapAt(const Pos & p) const;
 
     bool withinBounds(const Pos & pos) const;
+
+    static std::chrono::milliseconds getTimestamp();
 private:
+    bool mIsOnlineGame;
+    std::string mAddress;
+    std::string mPort;
+    Server mServer;
+    bool mListetningFinished;
+    bool mConnected;
+    std::mutex mLock;
+    void listenThread();
+
     std::string mLevelPath;
     Map map;
     Player * player;
-    AIPlayer * enemy;
+    Enemy * enemy;
 
     std::vector<TimedBomb> timedBombs;
     std::map<Pos, Flame> flames; // virtual

@@ -1,21 +1,21 @@
 #include "connectmenu.h"
+#include "clientgame.h"
 
 ConnectMenu::ConnectMenu(const std::string &levelsPath)
     :Menu("Connect"), mLevelsPath(levelsPath)
 {
-    addItem( mAddressField = new InputField("Address", "loopback", 40) );
-    addItem( mPortField = new InputField("Port", "8080", 7) );
+    addItem( mAddressField = new InputField("Address", "localhost", 40) );
+    addItem( mPortField = new InputField("Port", "88888", 7) );
     addItem(new OkButton("Confirm", *this));
+
     loop();
 }
 
-
-void ConnectMenu::connectInfo(std::string &address, int &port) const
+void ConnectMenu::connectInfo(std::string &address, std::string &port) const
 {
     address = mAddressField->content();
-    port = std::stoi(mPortField->content());
+    port = mPortField->content();
 }
-
 
 ConnectMenu::OkButton::OkButton(const char *name, const ConnectMenu &connectMenu)
     :Button(name), mConnectMenu(connectMenu)
@@ -23,12 +23,10 @@ ConnectMenu::OkButton::OkButton(const char *name, const ConnectMenu &connectMenu
 
 }
 
-
 bool ConnectMenu::OkButton::action()
 {
-    std::string address;
-    int port;
+    std::string address, port;
     mConnectMenu.connectInfo(address, port);
-    // todo
+    ClientGame game(address.c_str(), port.c_str());
     return false;
 }

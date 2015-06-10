@@ -9,7 +9,6 @@ public:
     Countdown(int milliseconds);
     bool expired(int milliseconds = -1);
 private:
-    std::chrono::milliseconds getTimestamp() const;
 
     std::chrono::milliseconds mPrev;
     int mPeriod;

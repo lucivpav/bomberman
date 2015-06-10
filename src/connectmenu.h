@@ -12,7 +12,7 @@ public:
     virtual ~ConnectMenu() = default;
 
     void connectInfo(std::string & address,
-                     int & port) const;
+                     std::string &port) const;
 private:
     std::string mLevelsPath;
     InputField * mAddressField;

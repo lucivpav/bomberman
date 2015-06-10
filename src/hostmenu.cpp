@@ -1,5 +1,7 @@
 #include "hostmenu.h"
 
+#include "game.h"
+
 #include <fstream>
 
 HostMenu::HostMenu(const std::string &levelsPath)
@@ -18,7 +20,7 @@ HostMenu::HostMenu(const std::string &levelsPath)
     mTrapsEnabledList->addItem("enable");
     mTrapsEnabledList->addItem("disable");
 
-    addItem( mPortField = new InputField("Port", "8080", 7) );
+    addItem( mPortField = new InputField("Port", "88888", 7) );
     addItem( new OkButton("Confirm", *this));
     loop();
 }
@@ -26,12 +28,12 @@ HostMenu::HostMenu(const std::string &levelsPath)
 void HostMenu::hostInfo(std::string &levelsPath,
                         std::string &level,
                         bool &trapsEnabled,
-                        int &port) const
+                        std::string &port) const
 {
     levelsPath = mLevelsPath;
     level = mLevelList->curItem();
     trapsEnabled = mTrapsEnabledList->curItem() == "enable";
-    port = std::stoi(mPortField->content());
+    port = mPortField->content();
 }
 
 
@@ -47,8 +49,8 @@ bool HostMenu::OkButton::action()
     std::string levelsPath;
     std::string level;
     bool trapsEnabled;
-    int port;
+    std::string port;
     mHostMenu.hostInfo(levelsPath, level, trapsEnabled, port);
-    // todo
+    Game game(levelsPath + level, trapsEnabled, "localhost", port.c_str());
     return false;
 }

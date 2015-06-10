@@ -1,12 +1,12 @@
 CC=clang++
-LDFLAGS=-lncurses
+LDFLAGS=-lncurses -lpthread
 CFLAGS=-std=c++11 -Wall -pedantic -Wno-long-long -O0 -ggdb
 
 all: bomberman
 
 tests: test
 
-OBJECTS=map.o block.o game.o pos.o countdown.o player.o ai_player.o ui.o mainmenu.o singleplayermenu.o multiplayermenu.o hostmenu.o connectmenu.o bomb.o ghost.o trap.o
+OBJECTS=map.o block.o game.o pos.o countdown.o player.o enemy.o ai_player.o online_player.o ui.o mainmenu.o singleplayermenu.o multiplayermenu.o hostmenu.o connectmenu.o bomb.o ghost.o trap.o client.o server.o clientgame.o
 
 bomberman: main.o $(OBJECTS)
 	$(CC) $(CFLAGS) main.o $(OBJECTS) -o bomberman $(LDFLAGS)
@@ -38,8 +38,14 @@ countdown.o: src/countdown.cpp
 player.o: src/player.cpp
 	$(CC) -c $(CFLAGS) src/player.cpp
 
+enemy.o: src/enemy.cpp
+	$(CC) -c $(CFLAGS) src/enemy.cpp
+
 ai_player.o: src/ai_player.cpp
 	$(CC) -c $(CFLAGS) src/ai_player.cpp
+
+online_player.o: src/online_player.cpp
+	$(CC) -c $(CFLAGS) src/online_player.cpp
 
 ui.o: src/ui.cpp
 	$(CC) -c $(CFLAGS) src/ui.cpp
@@ -67,6 +73,15 @@ ghost.o: src/ghost.cpp
 
 trap.o: src/trap.cpp
 	$(CC) -c $(CFLAGS) src/trap.cpp
+
+client.o: src/client.cpp
+	$(CC) -c $(CFLAGS) src/client.cpp
+
+server.o: src/server.cpp
+	$(CC) -c $(CFLAGS) src/server.cpp
+
+clientgame.o: src/clientgame.cpp
+	$(CC) -c $(CFLAGS) src/clientgame.cpp
 
 clean:
 	-rm *.o bomberman test 2>/dev/null || true
