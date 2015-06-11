@@ -3,8 +3,7 @@
 
 #include <string>
 #include <vector>
-#include <thread>
-#include <mutex>
+#include <functional>
 
 namespace UI
 {
@@ -73,8 +72,7 @@ class Menu
 {
 public:
     Menu(const char * name,
-         bool * loopTill = 0,
-         std::mutex * lock = 0);
+         std::function<bool(void)> * loopTill = 0);
     virtual ~Menu();
 
     virtual void keyEvent(int key);
@@ -88,8 +86,7 @@ private:
     bool mExpired;
     std::string mName;
 
-    bool * mLoopTill;
-    std::mutex * mLock;
+    std::function<bool(void)> * mLoopTill;
 };
 
 class Notification : public Menu
@@ -97,8 +94,7 @@ class Notification : public Menu
 public:
     Notification(const char * text,
                  const char * buttonText = 0,
-                 bool * loopTill = 0,
-                 std::mutex * lock = 0);
+                 std::function<bool(void)> * loopTill = 0);
 
     virtual ~Notification() = default;
 private:

@@ -23,14 +23,17 @@ public:
     Client();
     ~Client();
 
+    bool isConnected();
+
     bool connect(const char * address,
                  const char * port);
     void disconnect();
 
+    bool pendingMessages();
     bool getMessage(ServerMessage & message);
     void sendMessage(const ClientMessage & message);
 
-    void initOnlineGame(int & serverLives,
+    bool initOnlineGame(int & serverLives,
                         int & serverBombs,
                         int & clientLives,
                         int & clientBombs,
@@ -42,9 +45,14 @@ public:
                 int & clientBombs,
                 bool & speedBonus);
 private:
+    void closeSockets();
+
+    bool mCancelListening;
+    std::mutex mCancelListeningLock;
+
+    std::mutex mSocketLock;
     std::mutex mMessageLock;
     std::deque<ServerMessage*> mMessages;
-    std::thread * mThread;
     int mSocket;
     std::chrono::milliseconds ** mTimestamps;
     int mWidth;

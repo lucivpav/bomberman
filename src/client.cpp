@@ -10,7 +10,8 @@
 #include "game.h"
 
 Client::Client()
-    :mThread(0),
+    :mCancelListening(false),
+      mSocket(-1),
       mTimestamps(0),
       mWidth(-1),
       mHeight(-1)
@@ -21,8 +22,25 @@ Client::Client()
 Client::~Client()
 {
     disconnect();
-    if ( mThread )
-        delete mThread;
+
+    for ( const auto & m : mMessages )
+        delete m;
+
+    if ( mTimestamps )
+    {
+        for ( int i = 0 ; i < mWidth ; i++ )
+            delete [] mTimestamps[i];
+
+        delete [] mTimestamps;
+    }
+}
+
+bool Client::isConnected()
+{
+    mSocketLock.lock();
+    bool tmp = mSocket != -1;
+    mSocketLock.unlock();
+    return tmp;
 }
 
 bool Client::connect(const char *address, const char *port)
@@ -32,8 +50,8 @@ bool Client::connect(const char *address, const char *port)
     if ( mSocket == -1 )
         return false;
 
-    mThread = new std::thread(&Client::listen, this);
-    mThread->detach();
+    std::thread t(&Client::listen, this);
+    t.detach();
 
     return true;
 }
@@ -41,7 +59,33 @@ bool Client::connect(const char *address, const char *port)
 
 void Client::disconnect()
 {
-    close ( mSocket );
+    mCancelListeningLock.lock();
+    mCancelListening = true;
+    mCancelListeningLock.unlock();
+
+    // wait till actual closing
+    while ( 1 )
+    {
+        mSocketLock.lock();
+        if ( mSocket == -1 )
+        {
+            mSocketLock.unlock();
+            std::this_thread::sleep_for(std::chrono::milliseconds(30));
+            break;
+        }
+        mSocketLock.unlock();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(30));
+    }
+}
+
+bool Client::pendingMessages()
+{
+    mMessageLock.lock();
+    bool tmp = !mMessages.empty();
+    mMessageLock.unlock();
+
+    return tmp;
 }
 
 
@@ -55,7 +99,9 @@ bool Client::getMessage(ServerMessage &message)
         return false;
     }
 
-    message = *mMessages.front();
+    const auto & m = mMessages.front();
+    message = *m;
+    delete m;
     mMessages.pop_front();
 
     mMessageLock.unlock();
@@ -67,15 +113,22 @@ void Client::sendMessage(const ClientMessage &message)
     send ( mSocket, &message, sizeof(message), 0 );
 }
 
-void Client::initOnlineGame(int & serverLives,
+bool Client::initOnlineGame(int & serverLives,
                             int & serverBombs,
                             int & clientLives,
                             int & clientBombs,
                             bool & speedBonus)
 {
+    clear();
+    Countdown timeLimit(3000);
+
     /* size */
     while ( 1 )
     {
+
+        if ( timeLimit.expired() )
+            return false;
+
         mMessageLock.lock();
 
         for ( auto it = mMessages.begin();
@@ -112,6 +165,9 @@ void Client::initOnlineGame(int & serverLives,
 
     while ( 1 )
     {
+        if ( timeLimit.expired() )
+            return false;
+
         if ( blocksReceived == mWidth * mHeight &&
              serverLives != -1 &&
              serverBombs != -1 &&
@@ -158,6 +214,8 @@ void Client::initOnlineGame(int & serverLives,
             }
         }
     }
+
+    return true;
 }
 
 void Client::update(int &serverLives,
@@ -166,6 +224,9 @@ void Client::update(int &serverLives,
                     int &clientBombs,
                     bool &speedBonus)
 {
+    if ( !isConnected() )
+        return;
+
     const int limit = 200; // per frame
 
     for ( int i = 0 ; i < limit ; i++ )
@@ -212,6 +273,17 @@ void Client::update(int &serverLives,
     }
 }
 
+void Client::closeSockets()
+{
+    mSocketLock.lock();
+
+    if ( mSocket != -1 )
+        close ( mSocket );
+    mSocket = -1;
+
+    mSocketLock.unlock();
+}
+
 int Client::prepareCliSocket(const char *address, const char *port)
 {
     struct addrinfo * ai;
@@ -237,20 +309,48 @@ int Client::prepareCliSocket(const char *address, const char *port)
 
 void Client::listen()
 {
+    struct timeval tv;
+    fd_set set;
+
     while ( 1 )
     {
-        ServerMessage m;
-        int len = recv ( mSocket, &m, sizeof (m), 0 );
+        mCancelListeningLock.lock();
+        if ( mCancelListening )
+        {
+            FD_CLR(mSocket, &set);
 
-        // error or no further data -> finish
-        if ( len <= 0 )
-            break;
+            closeSockets();
 
-        mMessageLock.lock();
-        mMessages.push_back( new ServerMessage(m) );
-        mMessageLock.unlock();
+            return;
+        }
+        mCancelListeningLock.unlock();
+
+        tv.tv_sec = 0;
+        tv.tv_usec = 500000;
+
+        FD_ZERO(&set);
+        FD_SET(mSocket, &set);
+
+        if ( select(mSocket+1, &set, NULL, NULL, &tv) == -1 )
+        {
+            assert ( false );
+        }
+        if ( FD_ISSET(mSocket, &set) )
+        {
+            ServerMessage m;
+            int len = recv ( mSocket, &m, sizeof (m), 0 );
+
+            // error or no further data -> finish
+            if ( len <= 0 )
+                break;
+
+            mMessageLock.lock(); // <-- caused a leak on client version that disconnected: ctrl+c?
+            mMessages.push_back( new ServerMessage(m) );
+            mMessageLock.unlock();
+        }
     }
 
-    disconnect();
-    assert ( false );
+    FD_CLR(mSocket, &set);
+
+    closeSockets();
 }

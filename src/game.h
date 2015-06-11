@@ -54,10 +54,6 @@ private:
     std::string mAddress;
     std::string mPort;
     Server mServer;
-    bool mListetningFinished;
-    bool mConnected;
-    std::mutex mLock;
-    void listenThread();
 
     std::string mLevelPath;
     Map map;
@@ -76,6 +72,7 @@ private:
     bool load(const std::string & levelPath);
     void winAction();
     void loseAction();
+    void networkErrorAction();
 
     void loop();
     void keyEvent(int key);

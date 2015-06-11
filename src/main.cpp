@@ -1,9 +1,7 @@
-#include "mainmenu.h"
+#include "bomberman.h"
 
 int main(int argc, char ** argv)
 {
-    UI::init();
-    MainMenu menu(argv[0]);
-    UI::deinit();
+    Bomberman b(argv[0]);
     return 0;
 }

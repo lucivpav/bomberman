@@ -13,10 +13,6 @@ private:
     std::string mAddress;
     std::string mPort;
 
-    char ** mDisplay;
-    int mWidth;
-    int mHeight;
-
     int mLives;
     int mBombs;
     bool mSpeedBonus;
@@ -31,6 +27,10 @@ private:
     void draw();
 
     void drawStatus() const;
+
+    void winAction();
+    void loseAction();
+    void networkErrorAction();
 };
 
 #endif

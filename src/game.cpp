@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <cassert>
+#include <functional>
 
 #include "ui.h"
 #include "ai_player.h"
@@ -18,38 +19,31 @@ Game::Game(const std::string & levelPath, bool genTraps,
     : mIsOnlineGame(port),
       mAddress(address ? address : ""),
       mPort(port ? port : ""),
-      mListetningFinished(false),
       player(0),
       enemy(0),
       expired(false),
       mShouldGenTraps(genTraps),
       shouldDrawPath(false)
 {
-    srand(time(0));
-
     if ( !load(levelPath) )
         return;
 
     if ( mIsOnlineGame )
     {
         mServer.setup(*player, *enemy, map);
-        std::thread t(&Game::listenThread, this);
-        t.detach();
+        mServer.listen(address, port);
 
-        UI::Notification("Listening...", "Cancel",
-                         &mListetningFinished, &mLock);
+        std::function<bool(void)> f = std::bind(&Server::listeningFinished, &mServer);
+        UI::Notification("Listening...",
+                         "Cancel",
+                         &f);
 
-        mLock.lock();
-        if ( !mListetningFinished ) // cancel pressed
-        {
-            mLock.unlock();
+        if ( !mServer.listeningFinished() ) // cancel pressed
             return;
-        }
-        mLock.unlock();
 
-        if ( !mConnected )
+        if ( !mServer.isConnected() )
         {
-            UI::Notification("Error: hosting a server failed.");
+            UI::Notification("Error: hosting a server failed");
             return;
         }
     }
@@ -117,6 +111,13 @@ void Game::loop()
     {
         if ( expired )
             break;
+
+        if ( mIsOnlineGame && !mServer.isConnected() )
+        {
+            networkErrorAction();
+            break;
+        }
+
         handleBombs();
         handleFlames();
         int c = getch();
@@ -144,13 +145,14 @@ void Game::loop()
             firstRound = false;
         }
 
+        if ( mIsOnlineGame )
+            mServer.update();
+
         if ( player->isDead() )
             loseAction();
         else if ( enemy->isDead() )
             winAction();
 
-        if ( mIsOnlineGame )
-            mServer.update();
     }
 }
 
@@ -615,15 +617,6 @@ std::chrono::milliseconds Game::getTimestamp()
             (std::chrono::system_clock::now().time_since_epoch());
 }
 
-void Game::listenThread()
-{
-    mConnected = mServer.connect(mAddress.c_str(),
-                                  mPort.c_str());
-    mLock.lock();
-    mListetningFinished = true;
-    mLock.unlock();
-}
-
 bool Game::load(const std::string & levelPath)
 {
     mLevelPath = levelPath;
@@ -665,46 +658,41 @@ bool Game::load(const std::string & levelPath)
             mTraps.insert(std::make_pair(trap, Trap(map, trap)));
     if ( mShouldGenTraps )
         Game::genTraps(candidates);
+
+    clear();
+
     return true;
 }
 
 void Game::winAction()
 {
-    Countdown notifyExpire(2000);
-    int width, height;
-    std::string msg = "You won";
-    getmaxyx(stdscr, height, width);
+    UI::Notification("You won!");
 
-    clear();
-    mvprintw(height/2, width/2 - msg.size()/2, msg.c_str());
-    refresh();
-
-    while ( !notifyExpire.expired() )
-        ;
+    if ( mIsOnlineGame )
+    {
+        expired = true;
+        return;
+    }
 
     std::string lvlPath = mLevelPath;
     int lvlNr = lvlPath[lvlPath.size()-1]-48;
     lvlPath[lvlPath.size()-1] = (lvlNr+1+48);
     load(lvlPath);
-    clear();
 }
 
 void Game::loseAction()
 {
-    Countdown notifyExpire(2000);
-    int width, height;
-    std::string msg = "You lost";
-    getmaxyx(stdscr, height, width);
+    UI::Notification("You lost!");
 
-    clear();
-    mvprintw(height/2, width/2 - msg.size()/2, msg.c_str());
-    refresh();
+    if ( mIsOnlineGame )
+        expired = true;
+    else
+        load(mLevelPath);
+}
 
-    while ( !notifyExpire.expired() )
-        ;
-
-    load(mLevelPath);
-    clear();
+void Game::networkErrorAction()
+{
+    UI::Notification("Network error");
 }
 
 void Game::drawPath() const

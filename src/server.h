@@ -1,7 +1,7 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include <queue>
+#include <deque>
 #include <thread>
 #include <mutex>
 
@@ -47,8 +47,13 @@ public:
                const Player & clientPlayer,
                const Map & map);
 
-    bool connect(const char * address,
+    bool isConnected();//cannot be const due to locks
+
+    // async
+    void listen(const char * address,
                  const char * port);
+    bool listeningFinished();
+
     void disconnect();
 
     bool getMessage(ClientMessage & message);
@@ -57,10 +62,20 @@ public:
     void initOnlineGame();
     void update();
 private:
+    void listenThread(const char * address,
+                       const char * port);
+
+    void closeSockets();
+
+    bool mCancelListening;
+    std::mutex mCancelListeningLock;
+
+    bool mListeningFinished;
+    std::mutex mListeningFinishedLock;
+
     std::mutex mSocketLock;
     std::mutex mMessageLock;
-    std::queue<ClientMessage*> mMessages;
-    std::thread * mThread;
+    std::deque<ClientMessage*> mMessages;
 
     int mListenSocket;
     int mClientSocket;

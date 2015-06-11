@@ -6,7 +6,7 @@ all: bomberman
 
 tests: test
 
-OBJECTS=map.o block.o game.o pos.o countdown.o player.o enemy.o ai_player.o online_player.o ui.o mainmenu.o singleplayermenu.o multiplayermenu.o hostmenu.o connectmenu.o bomb.o ghost.o trap.o client.o server.o clientgame.o
+OBJECTS=bomberman.o map.o block.o game.o pos.o countdown.o player.o enemy.o ai_player.o online_player.o ui.o mainmenu.o singleplayermenu.o multiplayermenu.o hostmenu.o connectmenu.o bomb.o ghost.o trap.o client.o server.o clientgame.o
 
 bomberman: main.o $(OBJECTS)
 	$(CC) $(CFLAGS) main.o $(OBJECTS) -o bomberman $(LDFLAGS)
@@ -19,6 +19,9 @@ test.o: tests/test.cpp
 
 main.o: src/main.cpp
 	$(CC) -c $(CFLAGS) src/main.cpp
+
+bomberman.o: src/bomberman.cpp
+	$(CC) -c $(CFLAGS) src/bomberman.cpp
 
 map.o: src/map.cpp
 	$(CC) -c $(CFLAGS) src/map.cpp

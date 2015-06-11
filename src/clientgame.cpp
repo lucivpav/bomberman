@@ -7,7 +7,6 @@
 ClientGame::ClientGame(const char *address, const char *port)
     :mAddress(address),
       mPort(port),
-      mDisplay(0),
       mExpired(false)
 {
     if ( !mClient.connect(address, port) )
@@ -16,9 +15,14 @@ ClientGame::ClientGame(const char *address, const char *port)
         return;
     }
 
-    clear();
-    mClient.initOnlineGame(mEnemyLives, mEnemyBombs,
-                           mLives, mBombs, mSpeedBonus);
+
+    if ( !mClient.initOnlineGame(mEnemyLives, mEnemyBombs,
+                                 mLives, mBombs, mSpeedBonus) )
+    {
+        UI::Notification("Error: Server not responding.");
+        return;
+    }
+
     loop();
 }
 
@@ -29,6 +33,12 @@ void ClientGame::loop()
         if ( mExpired )
             break;
 
+        if ( !mClient.isConnected() && !mClient.pendingMessages() )
+        {
+            networkErrorAction();
+            break;
+        }
+
         int c = getch();
 
         if ( c != ERR )
@@ -36,8 +46,14 @@ void ClientGame::loop()
 
         mClient.update(mEnemyLives, mEnemyBombs,
                        mLives, mBombs, mSpeedBonus);
+
         drawStatus();
         refresh();
+
+        if ( mLives == 0 )
+            loseAction();
+        else if ( mEnemyLives == 0 )
+            winAction();
     }
 }
 
@@ -110,4 +126,21 @@ void ClientGame::drawStatus() const
             std::to_string(mEnemyBombs);
     mvprintw(height-1, 0, status.c_str());
     mvprintw(height-1, width-enemyStatus.size()-1, enemyStatus.c_str());
+}
+
+void ClientGame::winAction()
+{
+    UI::Notification("You won!");
+    mExpired = true;
+}
+
+void ClientGame::loseAction()
+{
+    UI::Notification("You lost!");
+    mExpired = true;
+}
+
+void ClientGame::networkErrorAction()
+{
+    UI::Notification("Network error");
 }
