@@ -11,14 +11,18 @@ public:
     HostMenu(const std::string & levelsPath);
     virtual ~HostMenu() = default;
 
-    void hostInfo(std::string & levelsPath,
+    bool hostInfo(std::string & levelsPath,
                   std::string & level,
+                  int & lives,
                   bool & trapsEnabled,
+                  bool & ghostsEnabled,
                   std::string &port) const;
 private:
     std::string mLevelsPath;
     List * mLevelList;
+    List * mLivesList;
     List * mTrapsEnabledList;
+    List * mGhostsEnabledList;
     InputField * mPortField;
 
     class OkButton : public Button

@@ -13,19 +13,24 @@
 
 #include <unistd.h>
 
-Game::Game(const std::string & levelPath, bool genTraps,
+Game::Game(const std::string & levelPath,
+           bool enableTraps,
+           bool enableGhosts,
+           int lives,
            const char * address,
            const char * port)
     : mIsOnlineGame(port),
       mAddress(address ? address : ""),
       mPort(port ? port : ""),
+      mEnableTraps(enableTraps),
+      mEnableGhosts(enableGhosts),
+      mLives(lives),
       player(0),
       enemy(0),
       expired(false),
-      mShouldGenTraps(genTraps),
       shouldDrawPath(false)
 {
-    if ( !load(levelPath) )
+    if ( !load(levelPath, enableTraps, enableGhosts, lives) )
         return;
 
     if ( mIsOnlineGame )
@@ -617,7 +622,10 @@ std::chrono::milliseconds Game::getTimestamp()
             (std::chrono::system_clock::now().time_since_epoch());
 }
 
-bool Game::load(const std::string & levelPath)
+bool Game::load(const std::string & levelPath,
+                bool enableTraps,
+                bool enableGhosts,
+                int lives)
 {
     mLevelPath = levelPath;
     Pos playerPos;
@@ -642,21 +650,24 @@ bool Game::load(const std::string & levelPath)
         return false;
     }
 
-    player = new Player(this, playerPos, 3, 3);
+    player = new Player(this, playerPos, lives, 3);
 
     if ( mIsOnlineGame )
-        enemy = new OnlinePlayer(this, enemyPos, 3, 3, &mServer);
+        enemy = new OnlinePlayer(this, enemyPos, lives, 3, &mServer);
     else
-        enemy = new AIPlayer(this, player, enemyPos, 3, 3);
+        enemy = new AIPlayer(this, player, enemyPos, lives, 3);
 
     std::vector<Pos> candidates;
     getCandidates(candidates);
-    genGhosts(candidates);
+
+    if ( enableGhosts )
+        genGhosts(candidates);
 
     if ( !trapsPos.empty() )
         for ( const auto & trap : trapsPos )
             mTraps.insert(std::make_pair(trap, Trap(map, trap)));
-    if ( mShouldGenTraps )
+
+    if ( enableTraps )
         Game::genTraps(candidates);
 
     clear();
@@ -677,7 +688,7 @@ void Game::winAction()
     std::string lvlPath = mLevelPath;
     int lvlNr = lvlPath[lvlPath.size()-1]-48;
     lvlPath[lvlPath.size()-1] = (lvlNr+1+48);
-    load(lvlPath);
+    load(lvlPath, mEnableTraps, mEnableGhosts, mLives);
 }
 
 void Game::loseAction()
@@ -687,7 +698,7 @@ void Game::loseAction()
     if ( mIsOnlineGame )
         expired = true;
     else
-        load(mLevelPath);
+        load(mLevelPath, mEnableTraps, mEnableGhosts, mLives);
 }
 
 void Game::networkErrorAction()

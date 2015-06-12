@@ -11,8 +11,6 @@
 #include "server.h"
 
 #include <map>
-#include <thread>
-#include <mutex>
 
 class Bonus
 {
@@ -27,8 +25,13 @@ private:
 class Game
 {
 public:
-    Game(const std::string & levelPath, bool genTraps,
-         const char * address = 0, const char * port = 0);
+    Game(const std::string & levelPath,
+         bool enableTraps = true,
+         bool enableGhosts = true,
+         int lives = 3,
+         const char * address = 0,
+         const char * port = 0);
+
     ~Game();
 
     void plantBombAction(Player & player);
@@ -55,7 +58,12 @@ private:
     std::string mPort;
     Server mServer;
 
+    /* setup */
     std::string mLevelPath;
+    bool mEnableTraps;
+    bool mEnableGhosts;
+    int mLives;
+
     Map map;
     Player * player;
     Enemy * enemy;
@@ -67,9 +75,12 @@ private:
     std::map<Pos, Trap> mTraps; // virtual
 
     bool expired;
-    bool mShouldGenTraps;
 
-    bool load(const std::string & levelPath);
+    bool load(const std::string & levelPath,
+              bool enableTraps,
+              bool enableGhosts,
+              int lives);
+
     void winAction();
     void loseAction();
     void networkErrorAction();

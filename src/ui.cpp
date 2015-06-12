@@ -197,6 +197,12 @@ void UI::List::addItem(const char *item)
     mItems.push_back(std::string(item));
 }
 
+void UI::List::setDefaultItem(int id)
+{
+    assert ( id >= 0 && id < mItems.size() );
+    mPos = id;
+}
+
 std::string UI::List::curItem() const
 {
     return mItems[mPos];

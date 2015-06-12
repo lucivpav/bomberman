@@ -11,13 +11,17 @@ public:
     SingleplayerMenu(const std::string & levelsPath);
     virtual ~SingleplayerMenu() = default;
 
-    void getInfo(std::string & levelsPath,
+    bool getInfo(std::string & levelsPath,
                  std::string & level,
-                 bool & trapsEnabled) const;
+                 int & lives,
+                 bool & trapsEnabled,
+                 bool & ghostsEnabled) const;
 private:
     std::string mLevelsPath;
     List * mLevelList;
+    List * mLivesList;
     List * mTrapsEnabledList;
+    List * mGhostsEnabledList;
 
     class OkButton : public Button
     {

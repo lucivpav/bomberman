@@ -45,6 +45,7 @@ public:
     virtual std::string drawEvent(bool selected);
 
     void addItem(const char * item);
+    void setDefaultItem(int id); /* 0, 1, ..., n */
     std::string curItem() const;
 private:
     std::vector<std::string> mItems;
