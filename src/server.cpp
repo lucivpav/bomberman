@@ -45,7 +45,7 @@ void Server::setup(const Player &serverPlayer,
 bool Server::isConnected()
 {
     mSocketLock.lock();
-    bool tmp = mClientSocket != -1 && mListenSocket != -1;
+    bool tmp = mClientSocket != -1;
     mSocketLock.unlock();
     return tmp;
 }
@@ -290,6 +290,12 @@ void Server::listenThread(const char *address, const char *port)
 
         return;
     }
+
+    /* close the listen socket - disable new incoming connections */
+    mSocketLock.lock();
+    close(mListenSocket);
+    mListenSocket = -1;
+    mSocketLock.unlock();
 
     mListeningFinishedLock.lock();
     mListeningFinished = true;
