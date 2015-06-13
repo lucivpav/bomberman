@@ -235,7 +235,6 @@ bool UI::InputField::keyEvent(int key)
         if ( (int)mContent.size() < mLimit )
             mContent += key;
     }
-    /* todo: numbers */
     else if ( key == KEY_BACKSPACE )
     {
         if ( !mContent.empty() )

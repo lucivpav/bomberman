@@ -3,6 +3,7 @@
 
 #include "map.h"
 #include "block.h"
+#include "bonus.h"
 #include "bomb.h"
 #include "player.h"
 #include "enemy.h"
@@ -12,19 +13,23 @@
 
 #include <map>
 
-class Bonus
-{
-public:
-    Bonus(Block::Type type):_type(type){}
-    Block::Type type() const { return _type; }
-    static int key(const Pos & pos) { return (pos.x << 2) + pos.y; }
-private:
-    Block::Type _type;
-};
-
+/**
+ * @brief The Game class represents represents a game. This can be either a
+ * singleplayer game or a game from a server perspective.
+ */
 class Game
 {
 public:
+    /**
+     * @param levelPath A filesystem path to the folder where levels are saved.
+     * @param enableTraps Whether to enable traps in the game.
+     * @param enableGhosts Whether to enable ghosts in the game.
+     * @param lives The number of lives players get.
+     * @param address The address to host a multiplayer game at. Leave default
+     * in order to start a singleplayer game.
+     * @param port The port to host a multiplayer game at. Leave default
+     * in order to start a singleplayer game.
+     */
     Game(const std::string & levelPath,
          bool enableTraps = true,
          bool enableGhosts = true,
@@ -34,23 +39,95 @@ public:
 
     ~Game();
 
+    /**
+     * @brief Makes the player plant a bomb (if possible).
+     * @param player The player to place the bomb.
+     */
     void plantBombAction(Player & player);
 
+    /**
+     * @brief Returns whether the player can plant a bomb.
+     * @return true if the player can plant a bomb, false otherwise.
+     */
     bool canPlantBomb(const Player & player) const;
-    void plantTimedBomb(Player & player);
-    void bombExplosion(const Bomb & b);
+
+    /**
+     * @brief Makes the bomb explode.
+     * @param bomb The bomb to be exploded.
+     */
+    void bombExplosion(const Bomb & bomb);
+
+    /**
+     * @brief Returns whether a player can move to the given position
+     * (presuming the player could teleport)
+     * @return true if a player can move to the position, false otherwise.
+     */
     bool canMovePlayer(const Pos & where) const;
-    void movePlayer(Player &p, const Pos &offset);
+
+    /**
+     * @brief Moves the player to a new position (if possible).
+     * @param player The player to me moved.
+     * @param offset
+     */
+    void movePlayer(Player &player, const Pos &offset);
+
+    /**
+     * @brief Returns whether a ghost can move to the given
+     * position (presuming the ghost could teleport)
+     * @return ture if a ghost can move to the position, false otherwise
+     */
     bool canMoveGhost(const Pos & where) const;
-    bool moveGhost(Ghost & g, const Pos & offset); /* returns false when dies */
-    Map & getMap() ;
-    const Bomb * getBomb(const Pos & p) const;
-    const TimedBomb & getTimedBomb(const Pos & p) const;
-    bool isFlameAt(const Pos & p) const;
+
+    /**
+     * @brief Moves the ghost to a new position.
+     * @warning The method does not check whether the ghost is
+     * actually able to move to the new location. You may want to call
+     * canMoveGhost() prior calling this.
+     * @param ghost The ghost to be moved.
+     * @param offset The 'side vector' to move by.
+     * E.g. (1,0) causes the ghost to move right by one block.
+     * @return false if the ghost dies, true otherwise.
+     */
+    bool moveGhost(Ghost & ghost, const Pos & offset);
+
+
+    /**
+     * @brief Returns the Map associated with the Game.
+     * @return The Map associated with the Game.
+     */
+    Map & getMap();
+
+    /**
+     * @brief Returns a Bomb at given position.
+     * @return A Bomb at given position or 0 otherwise.
+     */
+    const Bomb * getBomb(const Pos & pos) const;
+
+    /**
+     * @brief Returns a TimedBomb at given position.
+     * @warning The method does not check whether there actually is a TimedBomb
+     * at given location. It's caller's responsibility to make sure of that.
+     * @return A TimedBomb at given position.
+     */
+    const TimedBomb & getTimedBomb(const Pos & pos) const;
+
+    /**
+     * @brief Returns true if there is a Flame at given position.
+     * @return true if there is a Flame at given position, false otherwise.
+     */
+    bool isFlameAt(const Pos & pos) const;
+
+
+    /**
+     * @brief Returns a Trap at given position.
+     * @return A trap at given position, 0 otherwise.
+     */
     const Trap * trapAt(const Pos & p) const;
 
-    bool withinBounds(const Pos & pos) const;
-
+    /**
+     * @brief Returns current time in milliseconds since epoch.
+     * @return Current time in milliseconds since epoch.
+     */
     static std::chrono::milliseconds getTimestamp();
 private:
     bool mIsOnlineGame;
@@ -64,17 +141,17 @@ private:
     bool mEnableGhosts;
     int mLives;
 
-    Map map;
-    Player * player;
-    Enemy * enemy;
+    Map mMap;
+    Player * mPlayer;
+    Enemy * mEnemy;
 
-    std::vector<TimedBomb> timedBombs;
-    std::map<Pos, Flame> flames; // virtual
-    std::map<int, Bonus> bonuses;
+    std::vector<TimedBomb> mTimedBombs;
+    std::map<Pos, Flame> mFlames; // virtual
+    std::map<int, Bonus> mBonuses;
     std::map<Pos, Ghost> mGhosts; // virtual
     std::map<Pos, Trap> mTraps; // virtual
 
-    bool expired;
+    bool mExpired;
 
     bool load(const std::string & levelPath,
               bool enableTraps,
@@ -104,9 +181,12 @@ private:
     void genTraps(std::vector<Pos> candidates);
     void handleTraps();
 
+    int posKey(const Pos & pos); // uniq identifier for a Pos
+    void plantTimedBomb(Player & player);
+
 #ifdef DEBUG
     void drawPath() const;
-    bool shouldDrawPath;
+    bool mShouldDrawPath;
 #endif
 };
 

@@ -2,8 +2,8 @@
 
 #include "block.h"
 
-Enemy::Enemy(Game * g, const Pos &pos, int lives, int bombs)
-    :Player(g, pos, lives, bombs)
+Enemy::Enemy(Game * game, const Pos &pos, int lives, int bombs)
+    :Player(game, pos, lives, bombs)
 {
 
 }

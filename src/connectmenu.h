@@ -5,14 +5,19 @@
 
 using namespace UI;
 
+/**
+ * @brief The ConnectMenu class represents a Connect menu.
+ */
 class ConnectMenu : public Menu
 {
 public:
+    /**
+     * @param levelsPath The file system path to folder where
+     * levels are located.
+     */
     ConnectMenu(const std::string & levelsPath);
-    virtual ~ConnectMenu() = default;
 
-    void connectInfo(std::string & address,
-                     std::string &port) const;
+    virtual ~ConnectMenu() = default;
 private:
     std::string mLevelsPath;
     InputField * mAddressField;

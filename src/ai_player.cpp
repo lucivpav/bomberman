@@ -9,9 +9,16 @@
 #include <map>
 #include <algorithm>
 
-AIPlayer::AIPlayer(Game *g, Player *p, const Pos &pos, int lives, int bombs)
-    :Enemy(g, pos, lives, bombs),
-      enemy(p), mIdleCountdown(2000), mMoveCountdown(100), mIdle(false)
+AIPlayer::AIPlayer(Game *game,
+                   Player *enemy,
+                   const Pos &pos,
+                   int lives,
+                   int bombs)
+    :Enemy(game, pos, lives, bombs),
+      mEnemy(enemy),
+      mIdleCountdown(2000),
+      mMoveCountdown(100),
+      mIdle(false)
 {
 }
 
@@ -51,7 +58,7 @@ void AIPlayer::makeDecision()
     else if ( action == MOVE_DOWN )
         moveAction(Pos(0, 1));
     else if ( action == PLANT_BOMB )
-        game->plantBombAction(*this);
+        mGame->plantBombAction(*this);
     else if ( action == DETONATE_BOMBS )
         detonateRemoteBombs();
 }
@@ -100,6 +107,7 @@ AIPlayer::Action AIPlayer::getBestAction()
             action = IDLE;
         return action;
     }
+
     mPathfinderHint.clear();
     updateBestAction(Action::IDLE, action, utility);
     updateBestAction(MOVE_LEFT, action, utility);
@@ -152,8 +160,8 @@ int AIPlayer::idleUtility()
 int AIPlayer::moveUtility(const Pos &offset)
 {
     Pos pos = getPos() + offset;
-    const Trap * trap = game->trapAt(pos);
-    if ( !game->canMovePlayer(pos)
+    const Trap * trap = mGame->trapAt(pos);
+    if ( !mGame->canMovePlayer(pos)
          || bombThreat(pos)
          || (trap && trap->isOpen()) )
         return 0;
@@ -164,10 +172,10 @@ int AIPlayer::moveUtility(const Pos &offset)
 
 int AIPlayer::plantBombUtility()
 {
-    if ( !game->canPlantBomb(*this)
+    if ( !mGame->canPlantBomb(*this)
          || !canFlee(Bomb(0, getPos(), getBombRadius())) )
         return 0;
-    int dist = Pos::manhattanDistance(getPos(), enemy->getPos());
+    int dist = Pos::manhattanDistance(getPos(), mEnemy->getPos());
     if ( dist < getBombRadius() && (rand() % dist == 0) )
         return 400 - dist;
     return 200 - distanceToEnemy(getPos(), &mPathfinderHint)
@@ -193,8 +201,8 @@ int AIPlayer::canFleeDirection(const Bomb &threat,
         Pos side2 = Pos(offset.y * -1, offset.x * -1) + playerPos;
         const Trap * trap;
 
-        if ( !game->canMovePlayer(playerPos)
-             || ((trap = game->trapAt(playerPos)) && trap->isOpen()) )
+        if ( !mGame->canMovePlayer(playerPos)
+             || ((trap = mGame->trapAt(playerPos)) && trap->isOpen()) )
             return 0;
         const Bomb * threat2;
         if ( bombThreat(playerPos, &threat2, &threat) )
@@ -203,34 +211,37 @@ int AIPlayer::canFleeDirection(const Bomb &threat,
             if ( playerPos.x == threat.getPos().x
                  || playerPos.y == threat.getPos().y )
             {
-                if ( Pos::manhattanDistance(playerPos, threat.getPos()) > getBombRadius() )
+                if ( Pos::manhattanDistance(playerPos, threat.getPos())
+                     > getBombRadius() )
                     return steps;
             }
             else
                 return steps;
         }
-        if ( (game->canMovePlayer(side)
+        if ( (mGame->canMovePlayer(side)
               && !bombThreat(side)
-              && (!(trap = game->trapAt(side)) || !trap->isOpen()))
+              && (!(trap = mGame->trapAt(side)) || !trap->isOpen()))
              ||
-             (game->canMovePlayer(side2)
+             (mGame->canMovePlayer(side2)
               && !bombThreat(side2)
-              && (!(trap = game->trapAt(side2)) || !trap->isOpen())) )
+              && (!(trap = mGame->trapAt(side2)) || !trap->isOpen())) )
             return steps + 1;
     }
 }
 
-bool AIPlayer::bombThreat(Pos location, const Bomb ** bomb, const Bomb * ignore) const
+bool AIPlayer::bombThreat(Pos location,
+                          const Bomb ** bomb,
+                          const Bomb * ignore) const
 {
-    Block::Type curBlock = Block::symbolToType(game->getMap().get(location));
+    Block::Type curBlock = Block::symbolToType(mGame->getMap().get(location));
     if ( curBlock == Block::TIMED_BOMB || curBlock == Block::REMOTE_BOMB )
     {
         if ( bomb )
-            *bomb = game->getBomb(getPos());
+            *bomb = mGame->getBomb(getPos());
         if ( !ignore || (ignore && *bomb != ignore) )
             return true;
     }
-    else if ( game->isFlameAt(location) )
+    else if ( mGame->isFlameAt(location) )
     {
         if ( bomb )
             *bomb = 0;
@@ -264,18 +275,20 @@ bool AIPlayer::bombThreat(Pos location, const Bomb ** bomb, const Bomb * ignore)
     return false;
 }
 
-const Bomb * AIPlayer::bombThreatDirection(const Pos & location, const Pos & offset, const Bomb *ignore) const
+const Bomb * AIPlayer::bombThreatDirection(const Pos & location,
+                                           const Pos & offset,
+                                           const Bomb *ignore) const
 {
     Pos pos = location;
     while(1)
     {
         pos += offset;
-        if ( !game->withinBounds(pos) )
+        if ( !mGame->getMap().withinBounds(pos) )
             return 0;
-        char block = game->getMap().get(pos);
+        char block = mGame->getMap().get(pos);
         if ( !Block::isSolid(block) )
             continue;
-        const Bomb * b = game->getBomb(pos);
+        const Bomb * b = mGame->getBomb(pos);
         if ( !b ) return 0;
         if ( !ignore || (ignore && ignore != b) )
             return Pos::manhattanDistance(location, b->getPos())
@@ -305,9 +318,9 @@ bool AIPlayer::wallToBeDestroyedDirection(const Pos &offset) const
     for ( int i = 1 ; i < getBombRadius() ; i++ )
     {
         pos += offset;
-        if ( !game->withinBounds(pos) )
+        if ( !mGame->getMap().withinBounds(pos) )
             return false;
-        char block = game->getMap().get(pos);
+        char block = mGame->getMap().get(pos);
         if ( Block::isSolid(block) )
         {
             if ( block == Block::typeToSymbol(Block::DESTRUCTABLE) )
@@ -325,9 +338,9 @@ bool AIPlayer::bonusOpportunity(const Pos &offset) const
     while(1)
     {
         pos += offset;
-        if ( !game->withinBounds(pos) )
+        if ( !mGame->getMap().withinBounds(pos) )
             return false;
-        char block = game->getMap().get(pos);
+        char block = mGame->getMap().get(pos);
         if ( Block::isSolid(block) )
             return false;
         else
@@ -351,7 +364,7 @@ int AIPlayer::detonateBombsUtility() const
 
 void AIPlayer::moveAction(const Pos &offset)
 {
-    game->movePlayer(*this, offset);
+    mGame->movePlayer(*this, offset);
 }
 
 int AIPlayer::distanceToEnemy(Pos from, std::vector<Pos> * hint) const
@@ -368,7 +381,7 @@ int AIPlayer::distanceToEnemy(Pos from, std::vector<Pos> * hint) const
         for ( const auto & h : *hint )
             hintSet.insert(h);
 
-    open.emplace(make_pair(Pos::manhattanDistance(from, enemy->getPos()),
+    open.emplace(make_pair(Pos::manhattanDistance(from, mEnemy->getPos()),
                            from));
     dist.insert(make_pair(from, 0));
 
@@ -389,10 +402,10 @@ int AIPlayer::distanceToEnemy(Pos from, std::vector<Pos> * hint) const
 #endif
             return hint->size()-1;
         }
-        if ( current == enemy->getPos() )
+        if ( current == mEnemy->getPos() )
         {
             std::vector<Pos> path;
-            reconstructPath(from, enemy->getPos(), prev, path);
+            reconstructPath(from, mEnemy->getPos(), prev, path);
 
             if ( hint )
                 *hint = path;
@@ -412,8 +425,8 @@ int AIPlayer::distanceToEnemy(Pos from, std::vector<Pos> * hint) const
             Pos & expand = expanded[i];
             if ( closed.count(expand) )
                 continue;
-            if ( game->getMap().get(expand) == Block::typeToSymbol(Block::WALL)
-                 || game->getMap().get(expand) == Block::typeToSymbol(Block::NICE_WALL) )
+            if ( mGame->getMap().get(expand) == Block::typeToSymbol(Block::WALL)
+                 || mGame->getMap().get(expand) == Block::typeToSymbol(Block::NICE_WALL) )
             {
                 closed.insert(expand);
                 continue;
@@ -425,7 +438,7 @@ int AIPlayer::distanceToEnemy(Pos from, std::vector<Pos> * hint) const
                 prev.insert(std::make_pair(expand, current));
                 open.emplace(cost
                              + Pos::manhattanDistance(expand,
-                                                      enemy->getPos()),
+                                                      mEnemy->getPos()),
                              expand);
             }
         }

@@ -104,10 +104,6 @@ void ClientGame::keyEvent(int key)
     }
 }
 
-void ClientGame::draw()
-{
-}
-
 void ClientGame::drawStatus() const
 {
     int width, height;

@@ -64,11 +64,11 @@ void Map::load(const char *file, Pos & playerPos, Pos &enemyPos, std::set<Pos> &
     if ( mWidth < 3 || mWidth > maxWidth )
         throw MapLoadException(MapLoadException::INVALID_MAP);
 
-    map.push_back(new char[mWidth+1]);
-    map[0][mWidth] = '\0';
+    mMap.push_back(new char[mWidth+1]);
+    mMap[0][mWidth] = '\0';
     for ( size_t i = 0 ; i < line.size() ; i++ )
     {
-        map[0][i] = line[i];
+        mMap[0][i] = line[i];
         if ( !validOuterBlock(line[i]) )
             throw MapLoadException(MapLoadException::INVALID_MAP);
     }
@@ -98,14 +98,14 @@ void Map::load(const char *file, Pos & playerPos, Pos &enemyPos, std::set<Pos> &
              || !validOuterBlock(line.back()) )
             throw MapLoadException(MapLoadException::INVALID_MAP);
 
-        map.push_back(new char[mWidth+1]);
-        map.back()[mWidth] = '\0';
+        mMap.push_back(new char[mWidth+1]);
+        mMap.back()[mWidth] = '\0';
         for ( size_t j = 0 ; j < line.size() ; j++ )
         {
             char c = line[j];
             if ( !validInnerBlock(c) )
                 throw MapLoadException(MapLoadException::INVALID_MAP);
-            map[i][j] = c;
+            mMap[i][j] = c;
             if ( c == Block::typeToSymbol(Block::PLAYER) )
             {
                 if ( playerFound ) /* player duplication */
@@ -123,7 +123,7 @@ void Map::load(const char *file, Pos & playerPos, Pos &enemyPos, std::set<Pos> &
             else if ( c == Block::typeToSymbol(Block::TRAP_OPENED)
                       || c == Block::typeToSymbol(Block::TRAP_CLOSED) )
             {
-                map[i][j] = Block::typeToSymbol(Block::EMPTY);
+                mMap[i][j] = Block::typeToSymbol(Block::EMPTY);
                 trapsPos.insert(Pos(j, i));
             }
         }
@@ -135,35 +135,35 @@ void Map::load(const char *file, Pos & playerPos, Pos &enemyPos, std::set<Pos> &
     /* check last line */
     for ( int i = 1 ; i < mWidth-1 ; i++ )
     {
-        if ( !validOuterBlock(map.back()[i]) )
+        if ( !validOuterBlock(mMap.back()[i]) )
             throw MapLoadException(MapLoadException::INVALID_MAP);
     }
 }
 
 Map::~Map()
 {
-    for ( auto line : map )
+    for ( auto line : mMap )
         delete [] line;
 }
 
 void Map::draw()
 {
     for ( int i = 0 ; i < height() ; i++ )
-        mvprintw(i, 0, map[i]); //null terminator necessary
+        mvprintw(i, 0, mMap[i]); //null terminator necessary
 }
 
 char & Map::at(const Pos &pos)
 {
     assert ( pos.y >= 0 && pos.y < height() );
     assert ( pos.x >= 0 && pos.x < width() );
-    return map[pos.y][pos.x];
+    return mMap[pos.y][pos.x];
 }
 
 char Map::get(const Pos &pos) const
 {
     assert ( pos.y >= 0 && pos.y < height() );
     assert ( pos.x >= 0 && pos.x < width() );
-    return map[pos.y][pos.x];
+    return mMap[pos.y][pos.x];
 }
 
 int Map::width() const
@@ -173,14 +173,20 @@ int Map::width() const
 
 int Map::height() const
 {
-    return map.size();
+    return mMap.size();
+}
+
+bool Map::withinBounds(const Pos &pos) const
+{
+    return pos.x > 0 && pos.x < width()-1
+            && pos.y > 0 && pos.y < height()-1;
 }
 
 void Map::clearMap()
 {
-    for ( auto line : map )
+    for ( auto line : mMap )
         delete [] line;
-    map.clear();
+    mMap.clear();
 }
 
 bool Map::validOuterBlock(char symbol) const

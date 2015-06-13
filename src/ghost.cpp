@@ -3,8 +3,8 @@
 #include "game.h"
 #include <cassert>
 
-Ghost::Ghost(Game *g, const Pos &pos)
-    :mGame(g), mPos(pos), mDirection(Pos(1, 0)),
+Ghost::Ghost(Game *game, const Pos &pos)
+    :mGame(game), mPos(pos), mDirection(Pos(1, 0)),
       mCountdown(4)
 {
     if ( rand() % 4 )

@@ -43,7 +43,7 @@ void Server::setup(const Player &serverPlayer,
 }
 
 bool Server::isConnected()
-{
+{//cannot be const due to locks
     mSocketLock.lock();
     bool tmp = mClientSocket != -1;
     mSocketLock.unlock();

@@ -4,65 +4,61 @@
 /* Bomb */
 
 Bomb::Bomb(Player * owner)
-    :radius(3),
-      pos(Pos(0,0)),
-      owner(owner)
+    :mRadius(3),
+      mPos(Pos(0,0)),
+      mOwner(owner)
 {
 }
 
 Bomb::Bomb(Player * owner, const Pos &pos, int radius)
-    :radius(radius),
-      pos(pos),
-      owner(owner)
+    :mRadius(radius),
+      mPos(pos),
+      mOwner(owner)
 {
 }
 
 Pos Bomb::getPos() const
 {
-    return pos;
+    return mPos;
 }
 
-void Bomb::setPos(const Pos & p)
+void Bomb::setPos(const Pos & pos)
 {
-    pos = p;
+    mPos = pos;
 }
 
 int Bomb::getRadius() const
 {
-    return radius;
+    return mRadius;
 }
 
-void Bomb::setRadius(int r)
+void Bomb::setRadius(int radius)
 {
-    radius = r;
+    mRadius = radius;
 }
 
 Player *Bomb::getOwner()
 {
-    return owner;
+    return mOwner;
 }
 
 /* TimedBomb */
 
 TimedBomb::TimedBomb(Player * owner)
-    :Bomb(owner),counter(70)
+    :Bomb(owner),
+      mExpired(2300)
 {
 }
 
 TimedBomb::TimedBomb(Player * owner, const Pos & pos, int radius)
     :Bomb(owner, pos, radius),
-      counter(70)
+      mExpired(2300)
 {
 }
 
-bool TimedBomb::shouldExplode() const
+bool TimedBomb::expired()
 {
-    return !counter;
-}
-
-void TimedBomb::newFrame()
-{
-    if ( counter ) counter--;
+    return mExpired.expired();
 }
 
 /* RemoteBomb */
@@ -79,22 +75,17 @@ RemoteBomb::RemoteBomb(Player * owner, const Pos &pos, int radius)
 
 /* Flame */
 Flame::Flame(const Pos & pos)
-    :counter(12),
-      pos(pos)
+    :mExpired(400),
+      mPos(pos)
 {
 }
 
 Pos Flame::getPos() const
 {
-    return pos;
+    return mPos;
 }
 
-bool Flame::timedOut() const
+bool Flame::expired()
 {
-    return !counter;
-}
-
-void Flame::newFrame()
-{
-    if ( counter ) counter--;
+    return mExpired.expired();
 }

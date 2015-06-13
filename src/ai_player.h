@@ -7,10 +7,20 @@
 #include <map>
 #include <vector>
 
+/**
+ * @brief The AIPlayer class represents a player controlled by the program.
+ */
 class AIPlayer : public Enemy
 {
 public:
-    AIPlayer(Game * g, Player * p, const Pos & pos, int lives, int bombs);
+    /**
+     * @param game Pointer to the Game.
+     * @param enemy Opponent of the AIPlayer.
+     * @param pos Initial position.
+     * @param lives Initial lives.
+     * @param bombs Initial bombs.
+     */
+    AIPlayer(Game * game, Player * enemy, const Pos & pos, int lives, int bombs);
     virtual ~AIPlayer();
 
     virtual void makeDecision();
@@ -53,7 +63,7 @@ private:
                          const std::map<Pos, Pos> & prev,
                          std::vector<Pos> & path) const;
 
-    Player * enemy;
+    Player * mEnemy;
     Countdown mIdleCountdown;
     Countdown mMoveCountdown;
     bool mIdle;

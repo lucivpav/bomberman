@@ -1,11 +1,11 @@
 #include "block.h"
 
 #include <string.h>
-#include <assert.h>
+#include <cassert>
 
-char Block::typeToSymbol(Block::Type t)
+char Block::typeToSymbol(Block::Type type)
 {
-    return signs[t];
+    return signs[type];
 }
 
 bool Block::isSolid(char symbol)

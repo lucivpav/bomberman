@@ -2,66 +2,66 @@
 
 #include "game.h" // bomb
 
-Player::Player(Game *g, const Pos &pos, int lives, int bombs)
-    : game(g),
-      pos(pos),
-      lives(lives),
-      maxBombs(bombs),
-      bombsAvail(bombs),
-      bombRadius(3),
-      speedBonus(false),
-      remoteBombBonus(false)
+Player::Player(Game *game, const Pos &pos, int lives, int bombs)
+    : mGame(game),
+      mPos(pos),
+      mLives(lives),
+      mMaxBombs(bombs),
+      mBombsAvail(bombs),
+      mBombRadius(3),
+      mSpeedBonus(false),
+      mRemoteBombBonus(false)
 {
 }
 
 Pos Player::getPos() const
 {
-    return pos;
+    return mPos;
 }
 
 void Player::setPos(const Pos &pos)
 {
-    this->pos = pos;
+    this->mPos = pos;
 }
 
 void Player::die()
 {
-    if ( !lives )
+    if ( !mLives )
         return;
-    lives--;
-    if ( remoteBombBonus )
+    mLives--;
+    if ( mRemoteBombBonus )
         detonateRemoteBombs();
 }
 
 bool Player::isDead() const
 {
-    return !lives;
+    return !mLives;
 }
 
-bool Player::plantBomb(Bomb & b)
+bool Player::plantBomb(Bomb & bomb)
 {
-    if ( !bombsAvail )
+    if ( !mBombsAvail )
         return false;
-    bombsAvail--;
-    b.setPos(pos);
-    b.setRadius(bombRadius);
+    mBombsAvail--;
+    bomb.setPos(mPos);
+    bomb.setRadius(mBombRadius);
     return true;
 }
 
 bool Player::plantRemoteBomb()
 {
-    if ( !remoteBombBonus || !game->canPlantBomb(*this) )
+    if ( !mRemoteBombBonus || !mGame->canPlantBomb(*this) )
         return false;
-    bombsAvail--;
-    RemoteBomb b(this, pos, bombRadius);
-    remoteBombs.push_back(b);
-    game->getMap().at(getPos()) = Block::typeToSymbol(Block::REMOTE_BOMB);
+    mBombsAvail--;
+    RemoteBomb b(this, mPos, mBombRadius);
+    mRemoteBombs.push_back(b);
+    mGame->getMap().at(getPos()) = Block::typeToSymbol(Block::REMOTE_BOMB);
     return true;
 }
 
 bool Player::hasRemoteBombOnMap() const
 {
-    return !remoteBombs.empty();
+    return !mRemoteBombs.empty();
 }
 
 void Player::detonateRemoteBombs()
@@ -69,36 +69,36 @@ void Player::detonateRemoteBombs()
     if ( !hasRemoteBombBonus() )
         return;
 
-    while ( !remoteBombs.empty() )
+    while ( !mRemoteBombs.empty() )
     {
-        Bomb b = remoteBombs.back();
-        remoteBombs.pop_back();
-        game->bombExplosion(b); // this may detonate own bombs
-        bombsAvail++;
+        Bomb b = mRemoteBombs.back();
+        mRemoteBombs.pop_back();
+        mGame->bombExplosion(b); // this may detonate own bombs
+        mBombsAvail++;
     }
 }
 
-const RemoteBomb * Player::getRemoteBomb(const Pos &p) const
+const RemoteBomb * Player::getRemoteBomb(const Pos &pos) const
 {
-    for ( auto it = remoteBombs.begin();
-          it != remoteBombs.end();
+    for ( auto it = mRemoteBombs.begin();
+          it != mRemoteBombs.end();
           it++ )
-        if ( it->getPos() == p )
+        if ( it->getPos() == pos )
             return &*it;
     return 0;
 }
 
 bool Player::detonateRemoteBomb(const Pos &p)
 {
-    for ( auto it = remoteBombs.begin();
-          it != remoteBombs.end();
+    for ( auto it = mRemoteBombs.begin();
+          it != mRemoteBombs.end();
           it++ )
         if ( it->getPos() == p )
         {
             Bomb b = *it;
-            remoteBombs.erase(it);
-            game->bombExplosion(b); // this may detonate own bombs ( even self )
-            bombsAvail++;
+            mRemoteBombs.erase(it);
+            mGame->bombExplosion(b); // this may detonate own bombs ( even self )
+            mBombsAvail++;
             return true;
         }
     return false;
@@ -106,54 +106,54 @@ bool Player::detonateRemoteBomb(const Pos &p)
 
 void Player::setRemoteBombBonus(bool enable)
 {
-    remoteBombBonus = enable;
+    mRemoteBombBonus = enable;
 }
 
 bool Player::hasRemoteBombBonus() const
 {
-    return remoteBombBonus;
+    return mRemoteBombBonus;
 }
 
 void Player::addBomb()
 {
-    if ( bombsAvail == maxBombs )
+    if ( mBombsAvail == mMaxBombs )
     {
-        if ( maxBombs >= 4 )
+        if ( mMaxBombs >= 4 )
             return;
-        maxBombs++;
+        mMaxBombs++;
     }
-    bombsAvail++;
+    mBombsAvail++;
 }
 
 int Player::getLives() const
 {
-    return lives;
+    return mLives;
 }
 
 int Player::getBombsAvail() const
 {
-    return bombsAvail;
+    return mBombsAvail;
 }
 
 void Player::upgradeBombRadius()
 {
-    if ( bombRadius < 10 )
-        bombRadius++;
+    if ( mBombRadius < 10 )
+        mBombRadius++;
 }
 
 void Player::defaultBombRadius()
 {
-    bombRadius = 3;
+    mBombRadius = 3;
 }
 
 void Player::setSpeedBonus(bool enable)
 {
-    speedBonus = enable;
+    mSpeedBonus = enable;
 }
 
 bool Player::hasSpeedBonus() const
 {
-    return speedBonus;
+    return mSpeedBonus;
 }
 
 char Player::getSymbol() const
@@ -163,7 +163,7 @@ char Player::getSymbol() const
 
 int Player::getBombRadius() const
 {
-    return bombRadius;
+    return mBombRadius;
 }
 
 Player::~Player()

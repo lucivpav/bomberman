@@ -8,47 +8,119 @@
 #include "player.h"
 #include "pos.h"
 
+/**
+ * @brief The Map class represents a game board.
+ */
 class Map
 {
 public:
-    class MapLoadException
+    /**
+     * @brief The MapLoadException struct describes an error that may
+     * occur while loading a game board from a file.
+     */
+    struct MapLoadException
     {
-    public:
+        /**
+         * @brief The Type enum represents a type of a loading failure.
+         */
         enum Type {READ_FAILURE, INVALID_MAP};
+
+        /**
+         * @brief Constructs a MapLoadException with given Type.
+         * @param t The type of the MapLoadException.
+         */
         MapLoadException(Type t):type(t){}
+
+        /**
+         * @brief type The type of the MapLoadException.
+         */
         Type type;
     };
 
+    /**
+     * @brief Creates an empty game board.
+     */
     Map();
 
+    /**
+     * @brief Loads a game board from the file.
+     * @param file The file system path to the file.
+     * @param playerPos Outputs a position of the player.
+     * @param enemyPos Outputs a position of the enemy.
+     * @param trapsPos Outputs positions of traps.
+     * @throws MapLoadException
+     */
     Map(const char * file,
         Pos & playerPos,
         Pos & enemyPos,
-        std::set<Pos> & trapsPos); /* throws MapLoadException */
+        std::set<Pos> & trapsPos);
 
+    /**
+     * @brief Loads a game board from the file.
+     * @param file The file system path to the file.
+     * @param playerPos Outputs a position of the player.
+     * @param enemyPos Outputs a position of the enemy.
+     * @param trapsPos Outputs positions of traps.
+     * @throws MapLoadException
+     */
     void load(const char * file,
               Pos & playerPos,
               Pos & enemyPos,
-              std::set<Pos> & trapsPos); /* throws MapLoadException */
+              std::set<Pos> & trapsPos);
+
     ~Map();
 
+    /**
+     * @brief Draws the game board to the screen.
+     */
     void draw();
 
+    /**
+     * @brief Returns a symbol, a graphical representation of an object in
+     * the game board, at given position. The symbol can be modified by
+     * the caller.
+     * @return A symbol, a graphical representation of an object in
+     * the game board, at given position.
+     */
     char & at(const Pos & pos);
+
+    /**
+     * @brief Returns a symbol, a graphical representation of an object in
+     * the game board, at given position.
+     * @return A symbol, a graphical representation of an object in
+     * the game board, at given position.
+     */
     char get(const Pos & pos) const;
 
+    /**
+     * @brief Returns the width of the game board.
+     * @return The width of the game board.
+     */
     int width() const;
+
+    /**
+     * @brief Returns the height of the game board.
+     * @return The height of the game board.
+     */
     int height() const;
+
+    /**
+     * @brief Checks whether the given position is a valid position in
+     * the game board.
+     * @return true if the position is valid, false otherwise.
+     */
+    bool withinBounds(const Pos & pos) const;
 private:
-    std::vector<char*> map;
+    std::vector<char*> mMap;
 
     int mWidth;
-    void clearMap();
-    bool validOuterBlock(char symbol) const;
-    bool validInnerBlock(char symbol) const;
 
     static const int maxWidth = 80;
     static const int maxHeight = 23;
+
+    void clearMap();
+    bool validOuterBlock(char symbol) const;
+    bool validInnerBlock(char symbol) const;
 };
 
 #endif

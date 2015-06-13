@@ -344,7 +344,7 @@ void Client::listen()
             if ( len <= 0 )
                 break;
 
-            mMessageLock.lock(); // <-- caused a leak on client version that disconnected: ctrl+c?
+            mMessageLock.lock();
             mMessages.push_back( new ServerMessage(m) );
             mMessageLock.unlock();
         }

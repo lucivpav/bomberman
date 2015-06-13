@@ -5,10 +5,17 @@
 
 using namespace UI;
 
+/**
+ * @brief The MainMenu class represents a main menu.
+ */
 class MainMenu : public Menu
 {
 public:
+    /**
+     * @param argv0 The argv[0] parameter that main() receives.
+     */
     MainMenu(const char * argv0);
+
     virtual ~MainMenu() = default;
 private:
     std::string mLevelsPath;

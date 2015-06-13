@@ -5,13 +5,35 @@
 
 class Game;
 
+/**
+ * @brief The Ghost class represents a ghost in a Game.
+ */
 class Ghost
 {
 public:
-    Ghost(Game * g, const Pos & pos);
+    /**
+     * @param game A pointer to the Game.
+     * @param pos Initial position.
+     */
+    Ghost(Game * game, const Pos & pos);
+
+    /**
+     * @brief Changes the position of the Ghost.
+     * @param pos The new position.
+     */
     void setPos(const Pos & pos);
+
+    /**
+     * @brief Returns the position of the Ghost.
+     * @return The position of the Ghost.
+     */
     const Pos & getPos() const;
-    bool makeDecision(); /* returns false when dies */
+
+    /**
+     * @brief Instructs the Ghost to make decision.
+     * @return false if the Ghost dies, true otherwise
+     */
+    bool makeDecision();
 private:
     Game * mGame;
     Pos mPos;

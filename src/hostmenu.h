@@ -5,10 +5,18 @@
 
 using namespace UI;
 
+/**
+ * @brief The HostMenu class represents a Host menu.
+ */
 class HostMenu : public Menu
 {
 public:
+    /**
+     * @param levelsPath The file system path to folder where
+     * levels are located.
+     */
     HostMenu(const std::string & levelsPath);
+
     virtual ~HostMenu() = default;
 private:
     std::string mLevelsPath;
