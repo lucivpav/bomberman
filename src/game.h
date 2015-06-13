@@ -104,9 +104,10 @@ private:
     void genTraps(std::vector<Pos> candidates);
     void handleTraps();
 
-    // debug
+#ifdef DEBUG
     void drawPath() const;
     bool shouldDrawPath;
+#endif
 };
 
 #endif

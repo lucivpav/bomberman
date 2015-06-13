@@ -15,9 +15,10 @@ public:
 
     virtual void makeDecision();
 
-    // debug
+#ifdef DEBUG
     mutable std::vector<Pos> mPath;
     mutable std::vector<Pos> mCandidatePath;
+#endif
 private:
     enum Action {IDLE, MOVE_LEFT, MOVE_RIGHT, MOVE_UP, MOVE_DOWN,
                  PLANT_BOMB, DETONATE_BOMBS};

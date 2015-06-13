@@ -137,7 +137,9 @@ void AIPlayer::updateBestAction(const Action & action,
     {
         bestUtility = utility;
         bestAction = action;
+#ifdef DEBUG
         mPath = mCandidatePath;
+#endif
     }
 }
 
@@ -382,7 +384,9 @@ int AIPlayer::distanceToEnemy(Pos from, std::vector<Pos> * hint) const
             hint->erase(it, hint->end());
             reconstructPath(from, current, prev, *hint);
 
+#ifdef DEBUG
             mCandidatePath = *hint;
+#endif
             return hint->size()-1;
         }
         if ( current == enemy->getPos() )
@@ -392,7 +396,9 @@ int AIPlayer::distanceToEnemy(Pos from, std::vector<Pos> * hint) const
 
             if ( hint )
                 *hint = path;
+#ifdef DEBUG
             mCandidatePath = path;
+#endif
             return path.size()-1;
         }
 

@@ -1,6 +1,6 @@
 CC=clang++
 LDFLAGS=-lncurses -lpthread
-CFLAGS=-std=c++11 -Wall -pedantic -Wno-long-long -O0 -ggdb
+CFLAGS=-std=c++11 -Wall -pedantic -Wno-long-long -O0 -ggdb -DDEBUG
 
 all: bomberman
 

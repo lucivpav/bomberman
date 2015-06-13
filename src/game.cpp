@@ -27,8 +27,10 @@ Game::Game(const std::string & levelPath,
       mLives(lives),
       player(0),
       enemy(0),
-      expired(false),
-      shouldDrawPath(false)
+      expired(false)
+#ifdef DEBUG
+      ,shouldDrawPath(false)
+#endif
 {
     if ( !load(levelPath, enableTraps, enableGhosts, lives) )
         return;
@@ -138,8 +140,12 @@ void Game::loop()
         drawTraps();
         drawGhosts();
         drawFlames();
+
+#ifdef DEBUG
         if ( shouldDrawPath )
             drawPath();
+#endif
+
         drawStatus();
 
         if ( !firstRound )
@@ -206,7 +212,9 @@ void Game::keyEvent(int key)
     {
         player->detonateRemoteBombs();
     }
-    else if ( key == 'p' ) // debug
+
+#ifdef DEBUG
+    else if ( key == 'p' )
     {
         shouldDrawPath = !shouldDrawPath;
     }
@@ -220,6 +228,7 @@ void Game::keyEvent(int key)
         for ( int i = 0 ; i < 40 ; i++ )
             enemy->die();
     }
+#endif
 }
 
 void Game::drawGhosts() const
@@ -706,8 +715,10 @@ void Game::networkErrorAction()
     UI::Notification("Network error");
 }
 
+#ifdef DEBUG
 void Game::drawPath() const
 {
-   // for ( const auto & block : enemy->mPath )
-   //     mvaddch(block.y, block.x, '~');
+    for ( const auto & block : dynamic_cast<AIPlayer*>(enemy)->mPath )
+        mvaddch(block.y, block.x, '~');
 }
+#endif
