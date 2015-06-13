@@ -176,7 +176,7 @@ bool UI::List::keyEvent(int key)
     }
     else if ( key == KEY_RIGHT )
     {
-        if ( mPos < mItems.size()-1 )
+        if ( mPos < (int)mItems.size()-1 )
             mPos++;
         else
             mPos = 0;
@@ -199,7 +199,7 @@ void UI::List::addItem(const char *item)
 
 void UI::List::setDefaultItem(int id)
 {
-    assert ( id >= 0 && id < mItems.size() );
+    assert ( id >= 0 && id < (int)mItems.size() );
     mPos = id;
 }
 
@@ -231,7 +231,7 @@ bool UI::InputField::keyEvent(int key)
          || (key >= '0' && key <= '9')
          || key == '.' || key == ':' || key == '/' )
     {
-        if ( mContent.size() < mLimit )
+        if ( (int)mContent.size() < mLimit )
             mContent += key;
     }
     /* todo: numbers */
