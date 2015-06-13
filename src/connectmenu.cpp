@@ -6,27 +6,17 @@ ConnectMenu::ConnectMenu(const std::string &levelsPath)
 {
     addItem( mAddressField = new InputField("Address", "localhost", 40) );
     addItem( mPortField = new InputField("Port", "88888", 7) );
-    addItem(new OkButton("Confirm", *this));
+    addItem(new Button("Confirm",
+                         std::bind(&ConnectMenu::confirmAction, this)));
 
     loop();
 }
 
-void ConnectMenu::connectInfo(std::string &address, std::string &port) const
+bool ConnectMenu::confirmAction()
 {
-    address = mAddressField->content();
-    port = mPortField->content();
-}
+    std::string address = mAddressField->content();
+    std::string port = mPortField->content();
 
-ConnectMenu::OkButton::OkButton(const char *name, const ConnectMenu &connectMenu)
-    :Button(name), mConnectMenu(connectMenu)
-{
-
-}
-
-bool ConnectMenu::OkButton::action()
-{
-    std::string address, port;
-    mConnectMenu.connectInfo(address, port);
     ClientGame game(address.c_str(), port.c_str());
     return false;
 }

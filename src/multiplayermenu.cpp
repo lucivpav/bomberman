@@ -6,30 +6,18 @@
 MultiplayerMenu::MultiplayerMenu(const std::string &levelsPath)
     :Menu("Multiplayer"), mLevelsPath(levelsPath)
 {
-    addItem(new HostButton("Host", levelsPath));
-    addItem(new ConnectButton("Connect", levelsPath));
+    addItem(new Button("Host", std::bind(&MultiplayerMenu::hostAction, this)));
+    addItem(new Button("Connect", std::bind(&MultiplayerMenu::connectAction, this)));
     loop();
 }
 
-HostButton::HostButton(const char *name, const std::string &levelsPath)
-    :Button(name), mLevelsPath(levelsPath)
-{
-
-}
-
-bool HostButton::action()
+bool MultiplayerMenu::hostAction()
 {
     HostMenu m(mLevelsPath);
     return false;
 }
 
-ConnectButton::ConnectButton(const char *name, const std::string &levelsPath)
-    :Button(name), mLevelsPath(levelsPath)
-{
-
-}
-
-bool ConnectButton::action()
+bool MultiplayerMenu::connectAction()
 {
     ConnectMenu m(mLevelsPath);
     return false;

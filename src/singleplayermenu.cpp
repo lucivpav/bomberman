@@ -37,19 +37,16 @@ SingleplayerMenu::SingleplayerMenu(const std::string & levelsPath)
     mGhostsEnabledList->addItem("disable");
 
     /* ok button */
-    addItem( new OkButton("Confirm", *this));
+    addItem( new Button("Confirm",
+                        std::bind(&SingleplayerMenu::confirmAction, this)) );
 
     loop();
 }
 
-bool SingleplayerMenu::getInfo(std::string &levelsPath,
-                               std::string &level,
-                               int &lives,
-                               bool &trapsEnabled,
-                               bool &ghostsEnabled) const
+bool SingleplayerMenu::confirmAction()
 {
-    levelsPath = mLevelsPath;
-    level = mLevelList->curItem();
+    std::string level = mLevelList->curItem();
+    int lives;
 
     try
     {
@@ -60,33 +57,9 @@ bool SingleplayerMenu::getInfo(std::string &levelsPath,
         assert ( false ); // this should not be possible
     }
 
-    trapsEnabled = mTrapsEnabledList->curItem() == "enable";
-    ghostsEnabled = mGhostsEnabledList->curItem() == "enable";
+    bool trapsEnabled = mTrapsEnabledList->curItem() == "enable";
+    bool ghostsEnabled = mGhostsEnabledList->curItem() == "enable";
 
-    return true;
-}
-
-SingleplayerMenu::OkButton::OkButton(const char *name,
-                                     const SingleplayerMenu & menu)
-    :Button(name), mMenu(menu)
-{
-
-}
-
-bool SingleplayerMenu::OkButton::action()
-{
-    std::string levelsPath;
-    std::string level;
-    int lives;
-    bool trapsEnabled;
-    bool ghostsEnabled;
-
-    if ( !mMenu.getInfo(levelsPath, level, lives, trapsEnabled, ghostsEnabled) )
-    {
-        UI::Notification("Invalid setup. Try again");
-        return false;
-    }
-
-    Game(levelsPath + level, trapsEnabled, ghostsEnabled, lives);
+    Game(mLevelsPath + level, trapsEnabled, ghostsEnabled, lives);
     return false;
 }

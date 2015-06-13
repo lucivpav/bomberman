@@ -23,17 +23,7 @@ private:
     List * mTrapsEnabledList;
     List * mGhostsEnabledList;
 
-    class OkButton : public Button
-    {
-    public:
-        OkButton(const char * name,
-                 const SingleplayerMenu & menu);
-        virtual ~OkButton() = default;
-
-        virtual bool action();
-    private:
-        const SingleplayerMenu & mMenu;
-    };
+    bool confirmAction();
 };
 
 #endif

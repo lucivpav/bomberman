@@ -18,17 +18,7 @@ private:
     InputField * mAddressField;
     InputField * mPortField;
 
-    class OkButton : public Button
-    {
-    public:
-        OkButton(const char * name,
-                 const ConnectMenu &connectMenu);
-        virtual ~OkButton() = default;
-
-        virtual bool action();
-    private:
-        const ConnectMenu & mConnectMenu;
-    };
+    bool confirmAction();
 };
 
 #endif

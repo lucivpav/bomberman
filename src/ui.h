@@ -24,15 +24,14 @@ public:
 class Button : public MenuItem
 {
 public:
-    Button(const char * name);
+    Button(const char * name, std::function<bool(void)> action);
     virtual ~Button();
 
     virtual bool keyEvent(int key);
     virtual std::string drawEvent(bool selected);
-
-    virtual bool action() = 0;
 private:
     std::string mName;
+    std::function<bool(void)> mAction;
 };
 
 class List : public MenuItem
@@ -99,14 +98,7 @@ public:
 
     virtual ~Notification() = default;
 private:
-    class OkButton : public Button
-    {
-    public:
-        OkButton(const char * name);
-        virtual ~OkButton() = default;
-
-        virtual bool action();
-    };
+    bool confirmAction();
 };
 
 } // namespace UI

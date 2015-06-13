@@ -29,8 +29,9 @@ UI::MenuItem::~MenuItem()
 
 }
 
-UI::Button::Button(const char *name)
-    :mName(name)
+UI::Button::Button(const char *name, std::function<bool(void)> action)
+    :mName(name),
+      mAction(action)
 {
 
 }
@@ -43,7 +44,7 @@ UI::Button::~Button()
 bool UI::Button::keyEvent(int key)
 {
     if ( key == '\n' )
-        return action();
+        return mAction();
     return false;
 }
 
@@ -261,21 +262,12 @@ UI::Notification::Notification(const char * text,
                                std::function<bool(void)> * loopTill)
     :Menu(text, loopTill)
 {
-    if ( buttonText )
-        addItem( new OkButton(buttonText) );
-    else
-        addItem( new OkButton("Ok") );
-
+    addItem( new Button(buttonText ? buttonText : "Ok",
+                        std::bind(&Notification::confirmAction, this)) );
     loop();
 }
 
-UI::Notification::OkButton::OkButton(const char * name)
-    :Button(name)
-{
-
-}
-
-bool UI::Notification::OkButton::action()
+bool UI::Notification::confirmAction()
 {
     return true;
 }

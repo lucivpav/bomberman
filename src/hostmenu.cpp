@@ -35,19 +35,16 @@ HostMenu::HostMenu(const std::string &levelsPath)
     mGhostsEnabledList->addItem("disable");
 
     addItem( mPortField = new InputField("Port", "88888", 7) );
-    addItem( new OkButton("Confirm", *this));
+
+    addItem( new Button("Confirm",
+                        std::bind(&HostMenu::confirmAction, this)) );
     loop();
 }
 
-bool HostMenu::hostInfo(std::string &levelsPath,
-                        std::string &level,
-                        int &lives,
-                        bool &trapsEnabled,
-                        bool &ghostsEnabled,
-                        std::string &port) const
+bool HostMenu::confirmAction()
 {
-    levelsPath = mLevelsPath;
-    level = mLevelList->curItem();
+    std::string level = mLevelList->curItem();
+    int lives;
 
     try
     {
@@ -58,39 +55,13 @@ bool HostMenu::hostInfo(std::string &levelsPath,
         assert ( false );
     }
 
-    trapsEnabled = mTrapsEnabledList->curItem() == "enable";
-    ghostsEnabled = mGhostsEnabledList->curItem() == "enable";
+    bool trapsEnabled = mTrapsEnabledList->curItem() == "enable";
+    bool ghostsEnabled = mGhostsEnabledList->curItem() == "enable";
 
-    port = mPortField->content();
+    std::string port = mPortField->content();
 
-    return true;
-}
-
-
-HostMenu::OkButton::OkButton(const char *name,
-                             const HostMenu &hostMenu)
-    :Button(name), mHostMenu(hostMenu)
-{
-
-}
-
-bool HostMenu::OkButton::action()
-{
-    std::string levelsPath;
-    std::string level;
-    int lives;
-    bool trapsEnabled;
-    bool ghostsEnabled;
-    std::string port;
-
-    if ( !mHostMenu.hostInfo(levelsPath, level, lives,
-                             trapsEnabled, ghostsEnabled, port) )
-    {
-        UI::Notification("Invalid setup. Try again");
-        return false;
-    }
-
-    Game game(levelsPath + level, trapsEnabled, ghostsEnabled,
+    Game game(mLevelsPath + level, trapsEnabled, ghostsEnabled,
               lives, "localhost", port.c_str());
+
     return false;
 }
