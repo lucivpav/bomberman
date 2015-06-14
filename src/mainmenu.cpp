@@ -37,13 +37,6 @@ bool MainMenu::exitAction()
 
 void MainMenu::parseLevelsPath(const char *argv0)
 {
-    /*
-         * gcc - FAIL
-         * ./gcc
-         * ope/asf/gcc
-         * ../.././../asf/ff/gcc
-         * ../gcc
-         */
     std::string tmp(argv0);
     mLevelsPath = tmp.substr(0, tmp.rfind("lucivpav")) + "levels/";
 }

@@ -2,7 +2,8 @@
 #define ONLINE_PLAYER_H
 
 #include "enemy.h"
-#include "server.h"
+
+class Server;
 
 /**
  * @brief The OnlinePlayer class represents an Enemy that is controlled by

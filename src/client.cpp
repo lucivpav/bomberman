@@ -23,9 +23,6 @@ Client::~Client()
 {
     disconnect();
 
-    for ( const auto & m : mMessages )
-        delete m;
-
     if ( mTimestamps )
     {
         for ( int i = 0 ; i < mWidth ; i++ )
@@ -99,9 +96,7 @@ bool Client::getMessage(ServerMessage &message)
         return false;
     }
 
-    const auto & m = mMessages.front();
-    message = *m;
-    delete m;
+    message = mMessages.front();
     mMessages.pop_front();
 
     mMessageLock.unlock();
@@ -120,7 +115,7 @@ bool Client::initOnlineGame(int & serverLives,
                             bool & speedBonus)
 {
     clear();
-    Countdown timeLimit(3000);
+    Countdown timeLimit(5000);
 
     /* size */
     while ( 1 )
@@ -135,10 +130,10 @@ bool Client::initOnlineGame(int & serverLives,
               it != mMessages.end();
               ++it )
         {
-            if ( (*it)->type == ServerMessage::Type::MAP_SIZE )
+            if ( (*it).type == ServerMessage::Type::MAP_SIZE )
             {
-                mWidth = (int) (*it)->val[0];
-                mHeight = (int) (*it)->val[1];
+                mWidth = (int) (*it).val[0];
+                mHeight = (int) (*it).val[1];
                 mTimestamps = new std::chrono::milliseconds*[mWidth];
                 for ( int i = 0 ; i < mWidth ; i++ )
                 {
@@ -284,6 +279,11 @@ void Client::closeSockets()
     mSocketLock.unlock();
 }
 
+/**
+ * !!! WARNING !!! ACHTUNG !!! ATTENZIONE !!!
+ * This method has been based on the following code samples:
+ * https://edux.fit.cvut.cz/courses/BI-PA2/_media/net_2015.tgz
+ */
 int Client::prepareCliSocket(const char *address, const char *port)
 {
     struct addrinfo * ai;
@@ -307,6 +307,11 @@ int Client::prepareCliSocket(const char *address, const char *port)
     return sock;
 }
 
+/**
+ * !!! WARNING !!! ACHTUNG !!! ATTENZIONE !!!
+ * This method has been based on the following code samples:
+ * https://edux.fit.cvut.cz/courses/BI-PA2/_media/net_2015.tgz
+ */
 void Client::listen()
 {
     struct timeval tv;
@@ -317,11 +322,8 @@ void Client::listen()
         mCancelListeningLock.lock();
         if ( mCancelListening )
         {
-            FD_CLR(mSocket, &set);
-
-            closeSockets();
-
-            return;
+            mCancelListeningLock.unlock();
+            break;
         }
         mCancelListeningLock.unlock();
 
@@ -345,7 +347,7 @@ void Client::listen()
                 break;
 
             mMessageLock.lock();
-            mMessages.push_back( new ServerMessage(m) );
+            mMessages.push_back( m );
             mMessageLock.unlock();
         }
     }

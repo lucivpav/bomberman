@@ -1,6 +1,8 @@
 #include "online_player.h"
 
 #include "game.h"
+#include "server.h"
+#include "client.h"
 
 OnlinePlayer::OnlinePlayer(Game *game,
                            const Pos &pos,

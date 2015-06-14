@@ -52,7 +52,7 @@ enemy.o: src/enemy.cpp src/enemy.h src/block.h
 ai_player.o: src/ai_player.cpp src/ai_player.h src/game.h src/block.h
 	$(CXX) -c $(CFLAGS) src/ai_player.cpp
 
-online_player.o: src/online_player.cpp src/online_player.h src/game.h
+online_player.o: src/online_player.cpp src/online_player.h src/game.h src/server.h src/client.h
 	$(CXX) -c $(CFLAGS) src/online_player.cpp
 
 ui.o: src/ui.cpp src/ui.h
@@ -88,7 +88,7 @@ trap.o: src/trap.cpp src/trap.h src/map.h
 client.o: src/client.cpp src/client.h src/game.h
 	$(CXX) -c $(CFLAGS) src/client.cpp
 
-server.o: src/server.cpp src/server.h
+server.o: src/server.cpp src/server.h src/client.h
 	$(CXX) -c $(CFLAGS) src/server.cpp
 
 clientgame.o: src/clientgame.cpp src/clientgame.h src/ui.h src/countdown.h

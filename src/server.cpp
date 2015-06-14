@@ -7,6 +7,8 @@
 #include <ncurses.h>
 #include <cassert>
 
+#include "client.h"
+
 Server::Server()
     :mCancelListening(false),
       mListeningFinished(false),
@@ -42,8 +44,8 @@ void Server::setup(const Player &serverPlayer,
       mMap = &map;
 }
 
-bool Server::isConnected()
-{//cannot be const due to locks
+bool Server::isConnected() //cannot be const due to locks
+{
     mSocketLock.lock();
     bool tmp = mClientSocket != -1;
     mSocketLock.unlock();
@@ -226,6 +228,11 @@ void Server::update()
     }
 }
 
+/**
+ * !!! WARNING !!! ACHTUNG !!! ATTENZIONE !!!
+ * This method has been based on the following code samples:
+ * https://edux.fit.cvut.cz/courses/BI-PA2/_media/net_2015.tgz
+ */
 void Server::listenThread(const char *address, const char *port)
 {
     mListenSocket = prepareSrvSocket(address, port);
@@ -306,9 +313,8 @@ void Server::listenThread(const char *address, const char *port)
         mCancelListeningLock.lock();
         if ( mCancelListening )
         {
-            FD_CLR(mClientSocket, &set);
-            closeSockets();
-            return;
+            mCancelListeningLock.unlock();
+            break;
         }
         mCancelListeningLock.unlock();
 
@@ -375,6 +381,11 @@ bool Server::getMessage(ClientMessage &message)
     return true;
 }
 
+/**
+ * !!! WARNING !!! ACHTUNG !!! ATTENZIONE !!!
+ * This method has been based on the following code samples:
+ * https://edux.fit.cvut.cz/courses/BI-PA2/_media/net_2015.tgz
+ */
 int Server::prepareSrvSocket(const char *address, const char *port)
 {
     struct addrinfo * ai;

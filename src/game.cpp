@@ -701,7 +701,9 @@ void Game::winAction()
     std::string lvlPath = mLevelPath;
     int lvlNr = lvlPath[lvlPath.size()-1]-48;
     lvlPath[lvlPath.size()-1] = (lvlNr+1+48);
-    load(lvlPath, mEnableTraps, mEnableGhosts, mLives);
+
+    if ( !load(lvlPath, mEnableTraps, mEnableGhosts, mLives) )
+        mExpired = true;
 }
 
 void Game::loseAction()

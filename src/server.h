@@ -5,7 +5,6 @@
 #include <thread>
 #include <mutex>
 
-#include "client.h"
 #include "map.h"
 #include "player.h"
 

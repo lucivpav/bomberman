@@ -8,8 +8,6 @@
 
 #include "server.h"
 
-struct ServerMessage;
-
 /**
  * @brief The ClientMessage enum represents a type of message the
  * Client can send to the Server.
@@ -126,7 +124,7 @@ private:
 
     std::mutex mSocketLock;
     std::mutex mMessageLock;
-    std::deque<ServerMessage*> mMessages;
+    std::deque<ServerMessage> mMessages;
     int mSocket;
     std::chrono::milliseconds ** mTimestamps;
     int mWidth;
