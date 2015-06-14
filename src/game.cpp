@@ -646,7 +646,9 @@ bool Game::load(const std::string & levelPath,
     std::set<Pos> trapsPos;
 
     delete mPlayer;
+    mPlayer = 0;
     delete mEnemy;
+    mEnemy = 0;
     mTraps.clear();
     mTimedBombs.clear();
     mFlames.clear();
