@@ -34,7 +34,7 @@ HostMenu::HostMenu(const std::string &levelsPath)
     mGhostsEnabledList->addItem("enable");
     mGhostsEnabledList->addItem("disable");
 
-    addItem( mPortField = new InputField("Port", "88888", 7) );
+    addItem( mPortField = new InputField("Port", "39756", 5) );
 
     addItem( new Button("Confirm",
                         std::bind(&HostMenu::confirmAction, this)) );
@@ -60,8 +60,30 @@ bool HostMenu::confirmAction()
 
     std::string port = mPortField->content();
 
+    if ( !validPort(port) )
+    {
+        UI::Notification("Error: Invalid port number");
+        return false;
+    }
+
     Game game(mLevelsPath + level, trapsEnabled, ghostsEnabled,
               lives, "localhost", port.c_str());
 
     return false;
+}
+
+bool HostMenu::validPort(const std::string &port)
+{
+    try
+    {
+        int p = std::stoi(port);
+        if ( p < 1 || p > 65535 )
+            throw 42;
+    }
+    catch ( ... )
+    {
+        return false;
+    }
+
+    return true;
 }

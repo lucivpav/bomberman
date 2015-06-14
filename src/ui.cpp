@@ -97,12 +97,12 @@ void UI::Menu::keyEvent(int key)
 {
     assert ( mItems.size() );
 
-    if ( key == KEY_DOWN /*|| key == 's'*/ )
+    if ( key == KEY_DOWN )
     {
         if ( mPos < (int)mItems.size() )
             mPos++;
     }
-    else if ( key == KEY_UP /*|| key == 'w'*/ )
+    else if ( key == KEY_UP )
     {
         if ( mPos > 1 )
             mPos--;

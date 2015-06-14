@@ -27,6 +27,7 @@ private:
     InputField * mPortField;
 
     bool confirmAction();
+    bool validPort(const std::string & port);
 };
 
 
