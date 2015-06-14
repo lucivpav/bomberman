@@ -1,0 +1,1 @@
+User of this program is responsible for making sure the terminal size is at least 80x24 characters during program execution. The program is not guaranteed to function properly if this condition is not met.
