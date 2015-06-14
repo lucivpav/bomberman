@@ -35,25 +35,8 @@ Game::Game(const std::string & levelPath,
     if ( !load(levelPath, enableTraps, enableGhosts, lives) )
         return;
 
-    if ( mIsOnlineGame )
-    {
-        mServer.setup(*mPlayer, *mEnemy, mMap);
-        mServer.listen(address, port);
-
-        std::function<bool(void)> f = std::bind(&Server::listeningFinished, &mServer);
-        UI::Notification("Listening...",
-                         "Cancel",
-                         &f);
-
-        if ( !mServer.listeningFinished() ) // cancel pressed
-            return;
-
-        if ( !mServer.isConnected() )
-        {
-            UI::Notification("Error: hosting a server failed");
-            return;
-        }
-    }
+    if ( mIsOnlineGame && !initOnlineGame() )
+        return;
 
     loop();
 }
@@ -108,6 +91,27 @@ void Game::plantTimedBomb(Player &player)
         return;
     mMap.at(p) = Block::typeToSymbol(Block::TIMED_BOMB);
     mTimedBombs.push_back(bomb);
+}
+
+bool Game::initOnlineGame()
+{
+    mServer.setup(*mPlayer, *mEnemy, mMap);
+    mServer.listen(mAddress.c_str(), mPort.c_str());
+
+    std::function<bool(void)> f = std::bind(&Server::listeningFinished, &mServer);
+    UI::Notification("Listening...",
+                     "Cancel",
+                     &f);
+
+    if ( !mServer.listeningFinished() ) // cancel pressed
+        return false;
+
+    if ( !mServer.isConnected() )
+    {
+        UI::Notification("Error: hosting a server failed");
+        return false;
+    }
+    return true;
 }
 
 void Game::loop()

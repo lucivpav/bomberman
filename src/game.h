@@ -183,6 +183,7 @@ private:
 
     int posKey(const Pos & pos); // uniq identifier for a Pos
     void plantTimedBomb(Player & player);
+    bool initOnlineGame();
 
 #ifdef DEBUG
     void drawPath() const;
