@@ -722,6 +722,8 @@ void Game::networkErrorAction()
 #ifdef DEBUG
 void Game::drawPath() const
 {
+    if ( mIsOnlineGame )
+        return;
     for ( const auto & block : dynamic_cast<AIPlayer*>(mEnemy)->mPath )
         mvaddch(block.y, block.x, '~');
 }
