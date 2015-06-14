@@ -16,7 +16,11 @@ SingleplayerMenu::SingleplayerMenu(const std::string & levelsPath)
     {
         std::ifstream in(mLevelsPath + std::to_string(i));
         if ( !in )
+        {
+            if ( i == 1 )
+                UI::Notification("Error: Failed to load levels");
             break;
+        }
         mLevelList->addItem(std::to_string(i).c_str());
     }
 

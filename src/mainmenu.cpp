@@ -45,5 +45,5 @@ void MainMenu::parseLevelsPath(const char *argv0)
          * ../gcc
          */
     std::string tmp(argv0);
-    mLevelsPath = tmp.substr(0, tmp.rfind("bomberman")) + "levels/";
+    mLevelsPath = tmp.substr(0, tmp.rfind("lucivpav")) + "levels/";
 }
