@@ -29,8 +29,14 @@ void Player::die()
     if ( !mLives )
         return;
     mLives--;
+
+    mSpeedBonus = false;
+
     if ( mRemoteBombBonus )
+    {
         detonateRemoteBombs();
+        mRemoteBombBonus = false;
+    }
 }
 
 bool Player::isDead() const
@@ -118,7 +124,7 @@ void Player::addBomb()
 {
     if ( mBombsAvail == mMaxBombs )
     {
-        if ( mMaxBombs >= 4 )
+        if ( mMaxBombs >= 10 )
             return;
         mMaxBombs++;
     }

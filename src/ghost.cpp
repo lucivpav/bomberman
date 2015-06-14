@@ -23,7 +23,7 @@ const Pos & Ghost::getPos() const
 
 bool Ghost::makeDecision()
 {
-    if ( !mCountdown && rand() % 3 )
+    if ( !mCountdown && rand() % 3 == 0 )
     {
         if ( changeDirection() )
             if ( !mGame->moveGhost(*this, mDirection) )

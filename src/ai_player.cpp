@@ -41,7 +41,7 @@ void AIPlayer::makeDecision()
 
     if ( !mIdle )
     {
-        if ( !mMoveCountdown.expired(hasSpeedBonus() ? 50 : 100) )
+        if ( !mMoveCountdown.expired(hasSpeedBonus() ? 100 : 200) )
             return;
     }
 

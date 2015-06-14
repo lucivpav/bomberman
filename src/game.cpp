@@ -503,7 +503,7 @@ void Game::genFlames(Pos from, const Pos & to)
         }
         else if ( symbol == Block::typeToSymbol(Block::DESTRUCTABLE) )
         {
-            if ( rand() % 5 == 0 )
+            if ( rand() % 10 == 0 )
             {
                 int key = posKey(from);
                 int type = rand() % 4 + Block::BONUS_BOMB;
@@ -582,7 +582,15 @@ void Game::handleGhosts()
         if ( ghost->second.makeDecision() )
         {
             Pos newPos = ghost->second.getPos();
-            mGhosts.erase(mGhosts.find(ghost->first));
+            auto it = mGhosts.find(ghost->first);
+
+            // the bomb may have been already removed by makeDecision()
+            // which might caused player's death resulting in detonating
+            // his bombs which could have caused ghosts being removed
+            if ( it == mGhosts.end() )
+                continue;
+
+            mGhosts.erase(it);
             mGhosts.insert(std::make_pair(newPos, ghost->second));
         }
         else
