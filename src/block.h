@@ -52,7 +52,7 @@ public:
     static bool isSolid(char symbol);
 private:
     /* todo: ensure items such as flames cannot be loaded from a file */
-    static constexpr const char * signs = " WOcegTtzb#*^&@x";
+    static constexpr const char * signs = " WOcegTt.b#*^&@x";
     static constexpr const char * solid = "0111100011000001";
 };
 
