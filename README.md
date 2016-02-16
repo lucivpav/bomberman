@@ -1,8 +1,7 @@
-### About ###
+# Bomberman #
+A command line Bomberman game written in C++.
 
 ![](http://i.imgur.com/QE7mLYm.gif)
-
-A command line Bomberman game written in C++ using ncurses and pthreads.
 
 ### Features ###
 * Singleplayer (including ghosts, traps, ...)
@@ -11,7 +10,7 @@ A command line Bomberman game written in C++ using ncurses and pthreads.
 * AI
 
 ### Controls ###
-* WASD move
+* WASD/arrows move
 * B place bomb
 * space detonate bombs
 * Q exit
@@ -19,6 +18,7 @@ A command line Bomberman game written in C++ using ncurses and pthreads.
 ### Dependencies ###
 * pthread
 * ncurses
+* unix sockets
 * doxygen (optional)
 
 ### Compiling on Ubuntu ###
