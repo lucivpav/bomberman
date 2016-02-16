@@ -1,6 +1,6 @@
 ### About ###
 
-![](http://i.imgur.com/QE7mLYm.gifv)
+![](http://i.imgur.com/QE7mLYm.gif)
 
 A command line Bomberman game written in C++ using ncurses and pthreads.
 
