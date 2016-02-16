@@ -11,10 +11,10 @@ doc:
 	doxygen
 
 run:
-	./lucivpav
+	./bomberman
 
 compile: main.o $(OBJECTS)
-	$(CXX) $(CFLAGS) main.o $(OBJECTS) -o lucivpav $(LDFLAGS)
+	$(CXX) $(CFLAGS) main.o $(OBJECTS) -o bomberman $(LDFLAGS)
 
 test: test.o $(OBJECTS)
 	$(CXX) $(CFLAGS) test.o $(OBJECTS) -o test $(LDFLAGS)
@@ -95,5 +95,5 @@ clientgame.o: src/clientgame.cpp src/clientgame.h src/ui.h src/countdown.h
 	$(CXX) -c $(CFLAGS) src/clientgame.cpp
 
 clean:
-	rm -f *.o lucivpav test
+	rm -f *.o bomberman test
 	rm -rf doc

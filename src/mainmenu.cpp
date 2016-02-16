@@ -38,5 +38,5 @@ bool MainMenu::exitAction()
 void MainMenu::parseLevelsPath(const char *argv0)
 {
     std::string tmp(argv0);
-    mLevelsPath = tmp.substr(0, tmp.rfind("lucivpav")) + "levels/";
+    mLevelsPath = tmp.substr(0, tmp.rfind("bomberman")) + "levels/";
 }
