@@ -1,4 +1,7 @@
 ### About ###
+
+![](http://i.imgur.com/QE7mLYm.gifv)
+
 A command line Bomberman game written in C++ using ncurses and pthreads.
 
 ### Features ###
