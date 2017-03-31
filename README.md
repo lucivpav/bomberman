@@ -1,4 +1,6 @@
 # Bomberman #
+[![Build Status](https://travis-ci.org/lucivpav/bomberman.svg?branch=master)](https://travis-ci.org/lucivpav/bomberman)
+
 A command line Bomberman game written in C++.
 
 ![](http://i.imgur.com/QE7mLYm.gif)
