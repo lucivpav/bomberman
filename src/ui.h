@@ -1,4 +1,4 @@
-#ifndef UI_H
+﻿#ifndef UI_H
 #define UI_H
 
 #include <string>
@@ -20,23 +20,45 @@
 namespace UI
 {
 
+/* GUI mode
+bool gui;
+SDL_Window * GUI_window;
+SDL_Renderer * GUI_renderer;
+SDL_Texture * GUI_currentTexture;
+const int GUI_WINDOW_WIDTH = 640;
+const int GUI_WINDOW_HEIGHT = 480;
+
+void GUI_error(const char *message);
+
+void GUI_init();
+*/
+
+enum KEY { KUP = -1, KDOWN = -2, KLEFT = -3, KRIGHT = -4,
+           KENTER = -5, KBACKSPACE = -6 };
+
 /**
  * @brief Initializes the UI and makes UI classes ready to use.
  */
-void init();
+void init(bool gui_mode);
 
 /**
  * @brief Deinitializes the UI and clears all it's resources.
  */
 void deinit();
 
+static bool gui_mode;
+
+int convertKeyTUI(int key);
+
 /**
  * @brief The MenuItem class represents a general item in a Menu.
  */
 class MenuItem
 {
+private:
+  std::string mName;
 public:
-    MenuItem();
+    MenuItem(const char * name);
     virtual ~MenuItem();
 
     /**
@@ -52,7 +74,10 @@ public:
      * @param selected true if the item is selected by the parent Menu.
      * @return The drawn MenuItem.
      */
-    virtual std::string drawEvent(bool selected) = 0;
+    virtual std::string drawEventGUI() = 0;
+    virtual std::string drawEventTUI(bool selected) = 0;
+
+    const std::string & getName() const;
 };
 
 /**
@@ -70,9 +95,9 @@ public:
     virtual ~Button();
 
     virtual bool keyEvent(int key);
-    virtual std::string drawEvent(bool selected);
+    virtual std::string drawEventTUI(bool selected);
+    virtual std::string drawEventGUI();
 private:
-    std::string mName;
     std::function<bool(void)> mAction;
 };
 
@@ -90,7 +115,8 @@ public:
     virtual ~List();
 
     virtual bool keyEvent(int key);
-    virtual std::string drawEvent(bool selected);
+    virtual std::string drawEventTUI(bool selectd);
+    virtual std::string drawEventGUI();
 
     /**
      * @brief Adds an item to the list.
@@ -114,7 +140,6 @@ public:
 private:
     std::vector<std::string> mItems;
     int mPos;
-    std::string mName;
 };
 
 /**
@@ -133,7 +158,8 @@ public:
     virtual ~InputField();
 
     virtual bool keyEvent(int key);
-    virtual std::string drawEvent(bool selected);
+    virtual std::string drawEventTUI(bool selected);
+    virtual std::string drawEventGUI();
 
     /**
      * @brief Returns the content of the InputField.
@@ -141,7 +167,6 @@ public:
      */
     std::string content() const;
 private:
-    std::string mName;
     std::string mContent;
     int mLimit;
 };
@@ -171,7 +196,8 @@ public:
      /**
      * @brief This method is called whenever the Menu is needed to be redrawn.
      */
-    virtual void drawEvent();
+    virtual void drawEventTUI();
+    virtual void drawEventGUI();
 
     /**
      * @brief Adds an MenuItem to the Menu.

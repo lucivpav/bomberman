@@ -11,7 +11,7 @@ public:
      * @brief Starts the Bomberman game.
      * @param argv0 The argv[0] parameter that main() receives.
      */
-    Bomberman(const char * argv0);
+    Bomberman(const char * argv0, bool gui);
 };
 
 #endif

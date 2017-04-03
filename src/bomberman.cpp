@@ -5,15 +5,15 @@
 #include <ctime>
 #include <sys/signal.h>
 
-Bomberman::Bomberman(const char *argv0)
+Bomberman::Bomberman(const char *argv0, bool gui)
 {
-    /* prepare pseudo random number generator */
-    srand(time(0));
+  /* prepare pseudo random number generator */
+  srand(time(0));
 
-    /* disable SIGPIPE when sending to an invalid socket */
-    signal(SIGPIPE, SIG_IGN);
+  /* disable SIGPIPE when sending to an invalid socket */
+  signal(SIGPIPE, SIG_IGN);
 
-    UI::init();
-    MainMenu m(argv0);
-    UI::deinit();
+  UI::init(gui);
+  MainMenu m(argv0);
+  UI::deinit();
 }
