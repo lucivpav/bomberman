@@ -13,7 +13,6 @@ Bomberman::Bomberman(const char *argv0, bool gui)
   /* disable SIGPIPE when sending to an invalid socket */
   signal(SIGPIPE, SIG_IGN);
 
-  UI::init(gui);
+  UI ui(gui);
   MainMenu m(argv0);
-  UI::deinit();
 }

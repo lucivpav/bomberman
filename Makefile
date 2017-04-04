@@ -1,4 +1,4 @@
-LDFLAGS=-lncurses -lpthread -lSDL2 -lSDL_image
+LDFLAGS=-lncurses -lpthread -lSDL2 -lSDL_image -lSDL2_ttf
 CFLAGS=-std=c++11 -Wall -pedantic -Wno-long-long -O0 -ggdb
 OBJECTS=bomberman.o map.o block.o game.o pos.o countdown.o player.o enemy.o ai_player.o online_player.o ui.o mainmenu.o singleplayermenu.o multiplayermenu.o hostmenu.o connectmenu.o bonus.o bomb.o ghost.o trap.o client.o server.o clientgame.o
 

@@ -8,11 +8,11 @@ MainMenu::MainMenu(const char * argv0)
 {
     parseLevelsPath(argv0);
 
-    addItem(new Button("Singleplayer",
+    addItem(new UI::Button("Singleplayer",
                        std::bind(&MainMenu::singleplayerAction, this)) );
-    addItem(new Button("Multiplayer",
+    addItem(new UI::Button("Multiplayer",
                        std::bind(&MainMenu::multiplayerAction, this)) );
-    addItem(new Button("Exit",
+    addItem(new UI::Button("Exit",
                        std::bind(&MainMenu::exitAction, this)) );
 
     loop();

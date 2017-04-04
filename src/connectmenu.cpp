@@ -4,9 +4,9 @@
 ConnectMenu::ConnectMenu(const std::string &levelsPath)
     :Menu("Connect"), mLevelsPath(levelsPath)
 {
-    addItem( mAddressField = new InputField("Address", "localhost", 40) );
-    addItem( mPortField = new InputField("Port", "39756", 5) );
-    addItem(new Button("Confirm",
+    addItem( mAddressField = new UI::InputField("Address", "localhost", 40) );
+    addItem( mPortField = new UI::InputField("Port", "39756", 5) );
+    addItem(new UI::Button("Confirm",
                          std::bind(&ConnectMenu::confirmAction, this)));
 
     loop();

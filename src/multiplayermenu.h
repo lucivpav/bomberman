@@ -3,12 +3,10 @@
 
 #include "ui.h"
 
-using namespace UI;
-
 /**
  * @brief The MultiplayerMenu class represents a Multiplayer menu.
  */
-class MultiplayerMenu : public Menu
+class MultiplayerMenu : public UI::Menu
 {
 public:
     /**

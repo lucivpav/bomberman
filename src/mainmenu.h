@@ -3,12 +3,10 @@
 
 #include "ui.h"
 
-using namespace UI;
-
 /**
  * @brief The MainMenu class represents a main menu.
  */
-class MainMenu : public Menu
+class MainMenu : public UI::Menu
 {
 public:
     /**

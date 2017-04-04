@@ -5,6 +5,10 @@
 #include <vector>
 #include <functional>
 
+#include <SDL2/SDL.h>
+#include <SDL/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
+
 /**
  *  \addtogroup UI
  *  @{
@@ -17,21 +21,28 @@
  * any of the UI components as well as calling deinit() once the caller
  * is done with it.
  */
-namespace UI
+class UI
 {
+private:
+  void initTUI();
+  void initGUI();
 
-/* GUI mode
-bool gui;
-SDL_Window * GUI_window;
-SDL_Renderer * GUI_renderer;
-SDL_Texture * GUI_currentTexture;
-const int GUI_WINDOW_WIDTH = 640;
-const int GUI_WINDOW_HEIGHT = 480;
+  void deinitTUI();
+  void deinitGUI();
 
-void GUI_error(const char *message);
+  struct GUI {
+    SDL_Window* window;
+    SDL_Renderer * renderer;
+    SDL_Texture * curTexture;
+    TTF_Font * font;
+    const int WINDOW_WIDTH = 640;
+    const int WINDOW_HEIGHT = 480;
+    void error(const char * message);
+  };
 
-void GUI_init();
-*/
+public:
+  static bool mGUIMode;
+  static GUI mGUI;
 
 enum KEY { KUP = -1, KDOWN = -2, KLEFT = -3, KRIGHT = -4,
            KENTER = -5, KBACKSPACE = -6 };
@@ -39,16 +50,16 @@ enum KEY { KUP = -1, KDOWN = -2, KLEFT = -3, KRIGHT = -4,
 /**
  * @brief Initializes the UI and makes UI classes ready to use.
  */
-void init(bool gui_mode);
+  UI(bool gui_mode);
 
 /**
  * @brief Deinitializes the UI and clears all it's resources.
  */
-void deinit();
+  ~UI();
 
-static bool gui_mode;
-
-int convertKeyTUI(int key);
+static int convertKeyTUI(int key);
+static int convertKeyGUI(int key);
+static SDL_Texture * textToTexture(const char * text, SDL_Color color);
 
 /**
  * @brief The MenuItem class represents a general item in a Menu.
@@ -57,6 +68,7 @@ class MenuItem
 {
 private:
   std::string mName;
+  SDL_Texture * mTexture;
 public:
     MenuItem(const char * name);
     virtual ~MenuItem();
@@ -74,10 +86,15 @@ public:
      * @param selected true if the item is selected by the parent Menu.
      * @return The drawn MenuItem.
      */
-    virtual std::string drawEventGUI() = 0;
+    virtual SDL_Texture * drawEventGUI() = 0;
     virtual std::string drawEventTUI(bool selected) = 0;
 
     const std::string & getName() const;
+
+    /* SDL related */
+    void updateTexture(const char * text);
+    void render(int x, int y);
+    SDL_Texture * getTexture();
 };
 
 /**
@@ -96,7 +113,7 @@ public:
 
     virtual bool keyEvent(int key);
     virtual std::string drawEventTUI(bool selected);
-    virtual std::string drawEventGUI();
+    virtual SDL_Texture * drawEventGUI();
 private:
     std::function<bool(void)> mAction;
 };
@@ -116,7 +133,7 @@ public:
 
     virtual bool keyEvent(int key);
     virtual std::string drawEventTUI(bool selectd);
-    virtual std::string drawEventGUI();
+    virtual SDL_Texture * drawEventGUI();
 
     /**
      * @brief Adds an item to the list.
@@ -159,7 +176,7 @@ public:
 
     virtual bool keyEvent(int key);
     virtual std::string drawEventTUI(bool selected);
-    virtual std::string drawEventGUI();
+    virtual SDL_Texture * drawEventGUI();
 
     /**
      * @brief Returns the content of the InputField.
@@ -243,7 +260,7 @@ private:
     bool confirmAction();
 };
 
-} // namespace UI
+}; // namespace UI
 
 /*! @} End of Doxygen Groups*/
 

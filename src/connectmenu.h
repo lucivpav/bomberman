@@ -3,12 +3,10 @@
 
 #include "ui.h"
 
-using namespace UI;
-
 /**
  * @brief The ConnectMenu class represents a Connect menu.
  */
-class ConnectMenu : public Menu
+class ConnectMenu : public UI::Menu
 {
 public:
     /**
@@ -20,8 +18,8 @@ public:
     virtual ~ConnectMenu() = default;
 private:
     std::string mLevelsPath;
-    InputField * mAddressField;
-    InputField * mPortField;
+    UI::InputField * mAddressField;
+    UI::InputField * mPortField;
 
     bool confirmAction();
 

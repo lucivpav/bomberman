@@ -9,7 +9,7 @@ HostMenu::HostMenu(const std::string &levelsPath)
     :Menu("Host"), mLevelsPath(levelsPath)
 {
     /* levels */
-    addItem( mLevelList = new List("Level") );
+    addItem( mLevelList = new UI::List("Level") );
     for ( int i = 1 ; i <= 10 ; i++ )
     {
         std::ifstream in(mLevelsPath + std::to_string(i));
@@ -19,24 +19,24 @@ HostMenu::HostMenu(const std::string &levelsPath)
     }
 
     /* lives */
-    addItem( mLivesList = new List("Lives") );
+    addItem( mLivesList = new UI::List("Lives") );
     for ( int i = 1 ; i <= 99 ; i++ )
         mLivesList->addItem(std::to_string(i).c_str());
     mLivesList->setDefaultItem(2);
 
     /* traps */
-    addItem( mTrapsEnabledList = new List("Traps") );
+    addItem( mTrapsEnabledList = new UI::List("Traps") );
     mTrapsEnabledList->addItem("enable");
     mTrapsEnabledList->addItem("disable");
 
     /* ghosts */
-    addItem( mGhostsEnabledList = new List("Ghosts"));
+    addItem( mGhostsEnabledList = new UI::List("Ghosts"));
     mGhostsEnabledList->addItem("enable");
     mGhostsEnabledList->addItem("disable");
 
-    addItem( mPortField = new InputField("Port", "39756", 5) );
+    addItem( mPortField = new UI::InputField("Port", "39756", 5) );
 
-    addItem( new Button("Confirm",
+    addItem( new UI::Button("Confirm",
                         std::bind(&HostMenu::confirmAction, this)) );
     loop();
 }

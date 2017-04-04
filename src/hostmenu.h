@@ -3,12 +3,10 @@
 
 #include "ui.h"
 
-using namespace UI;
-
 /**
  * @brief The HostMenu class represents a Host menu.
  */
-class HostMenu : public Menu
+class HostMenu : public UI::Menu
 {
 public:
     /**
@@ -20,11 +18,11 @@ public:
     virtual ~HostMenu() = default;
 private:
     std::string mLevelsPath;
-    List * mLevelList;
-    List * mLivesList;
-    List * mTrapsEnabledList;
-    List * mGhostsEnabledList;
-    InputField * mPortField;
+    UI::List * mLevelList;
+    UI::List * mLivesList;
+    UI::List * mTrapsEnabledList;
+    UI::List * mGhostsEnabledList;
+    UI::InputField * mPortField;
 
     bool confirmAction();
     bool validPort(const std::string & port);

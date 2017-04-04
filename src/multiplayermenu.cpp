@@ -6,8 +6,10 @@
 MultiplayerMenu::MultiplayerMenu(const std::string &levelsPath)
     :Menu("Multiplayer"), mLevelsPath(levelsPath)
 {
-    addItem(new Button("Host", std::bind(&MultiplayerMenu::hostAction, this)));
-    addItem(new Button("Connect", std::bind(&MultiplayerMenu::connectAction, this)));
+    addItem(new UI::Button("Host",
+                           std::bind(&MultiplayerMenu::hostAction, this)));
+    addItem(new UI::Button("Connect",
+                           std::bind(&MultiplayerMenu::connectAction, this)));
     loop();
 }
 
