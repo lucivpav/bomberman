@@ -12,10 +12,20 @@ UI::MenuItem::MenuItem(const char * name)
   : mName(name),
     mTexture(nullptr)
 {
-
+  if ( mGUIMode ) updateTexture(name);
 }
 
 UI::MenuItem::~MenuItem()
+{
+
+}
+
+void UI::MenuItem::focusEvent()
+{
+
+}
+
+void UI::MenuItem::defocusEvent()
 {
 
 }
@@ -30,23 +40,15 @@ void UI::MenuItem::updateTexture(const char *text)
   mTexture = UI::textToTexture(text, {0,0,0});
 }
 
-void UI::MenuItem::render(int x, int y)
-{
-  SDL_Rect renderQuad = { x, y, mGUI.WINDOW_WIDTH, mGUI.WINDOW_HEIGHT };
-  SDL_RenderCopyEx(mGUI.renderer, mTexture, 0,
-                   &renderQuad, 0.0, 0, SDL_FLIP_NONE);
-}
-
 SDL_Texture *UI::MenuItem::getTexture()
 {
-  return getTexture();
+  return mTexture;
 }
 
 UI::Button::Button(const char *name, std::function<bool(void)> action)
     :MenuItem(name),
       mAction(action)
 {
-  updateTexture(name);
 }
 
 UI::Button::~Button()
@@ -76,9 +78,10 @@ UI::Menu::Menu(const char * name,
     :mPos(1),
       mExpired(false),
       mName(name),
-      mLoopTill(loopTill)
+      mLoopTill(loopTill),
+      mTexture(nullptr)
 {
-
+  if ( mGUIMode ) mTexture = UI::textToTexture(name, {0,0,0});
 }
 
 UI::Menu::~Menu()
@@ -94,6 +97,7 @@ void UI::Menu::addItem(MenuItem * item)
 
 void UI::Menu::loop()
 {
+    init();
     while(1)
     {
         if ( mExpired )
@@ -129,19 +133,30 @@ void UI::Menu::loop()
     }
 }
 
+void UI::Menu::init()
+{
+  mItems[0]->focusEvent();
+  for ( size_t i = 1 ; i < mItems.size() ; ++i )
+    mItems[i]->defocusEvent();
+}
+
 void UI::Menu::keyEvent(int key)
 {
     assert ( mItems.size() );
 
     if ( key == UI::KDOWN )
     {
+        mItems[mPos-1]->defocusEvent();
         if ( mPos < (int)mItems.size() )
             mPos++;
+        mItems[mPos-1]->focusEvent();
     }
     else if ( key == UI::KUP )
     {
+        mItems[mPos-1]->defocusEvent();
         if ( mPos > 1 )
             mPos--;
+        mItems[mPos-1]->focusEvent();
     }
     else if ( key == 'q' )
     {
@@ -190,49 +205,58 @@ void UI::Menu::drawEventTUI()
 void UI::Menu::drawEventGUI()
 {
   //SDL_RenderCopy(mGUI.renderer, mGUI.curTexture, 0, 0);
-  int h= 0.1 * mGUI.WINDOW_HEIGHT;
-  int w= 0.7 * mGUI.WINDOW_WIDTH;
-  int hoffset = h - h/4;
+  int h = 0.1 * mGUI.WINDOW_HEIGHT;
+  int w = 0.7 * mGUI.WINDOW_WIDTH;
+  int hoffset = h / 3;
 
   int tmp2 = (mItems.size()-1) * hoffset;
   int tmp = std::max(0, tmp2);
   int y = mGUI.WINDOW_HEIGHT/2 - (mItems.size()*h + tmp) / 2;
+  int title_offset = h;
+  y += 1.5*title_offset;
+  int title_y = y - title_offset - h;
+  int title_x;
 
   int i = 1;
   for ( auto & item : mItems )
   {
-    //if ( i == mPos )
-    //{
       SDL_Texture * texture = item->drawEventGUI();
-      int x = 0.2 * mGUI.WINDOW_WIDTH;
+      int x = mGUI.WINDOW_WIDTH/2;
       SDL_Rect rect;
       rect.x = x-w/2; rect.y = y-h/2;
       rect.w = w; rect.h = h;
-      SDL_SetRenderDrawColor(mGUI.renderer, 0, 0, 255, 255);
-      SDL_RenderDrawRect(mGUI.renderer, &rect);
-      //mvprintw(y, x - 3, ("-> " + toDraw).c_str());
-    //}
-    //else
-    //{
-    //  std::string toDraw = item->drawEventTUI(false);
-    //  int x = ( mGUI.WINDOW_WIDTH - toDraw.size() ) / 2;
-    //  SDL_Rect rect;
-    //  rect.x = x-w/2; rect.y = y-h/2;
-    //  rect.w = w; rect.h = h;
-    //  SDL_SetRenderDrawColor(mGUI.renderer, 0, 0, 255, 255);
-    //  SDL_RenderDrawRect(mGUI.renderer, &rect);
-    //  //mvprintw(y, x, toDraw.c_str());
-    //}
-    y += 2*hoffset;
+      title_x = x;
+
+      /* box */
+      if ( i == mPos ) {
+        SDL_SetRenderDrawColor(mGUI.renderer, 0, 0, 255, 255);
+        SDL_RenderDrawRect(mGUI.renderer, &rect);
+      }
+
+      /* text */
+      SDL_Rect rect2 = {x,y, 0, 0};
+      SDL_QueryTexture(texture,0,0,&rect2.w, &rect2.h);
+      rect2.x -= rect2.w/2;
+      rect2.y -= rect2.h/2;
+      SDL_RenderCopyEx(mGUI.renderer, texture, 0, &rect2,
+                       0.0, 0, SDL_FLIP_NONE);
+    y += h+hoffset;
     i++;
   }
+  // TODO: title
+  SDL_Rect rect = {title_x, title_y, 0, 0};
+  SDL_QueryTexture(mTexture,0,0,&rect.w, &rect.h);
+  rect.x -= rect.w/2;
+  rect.y -= rect.h/2;
+  SDL_RenderCopyEx(mGUI.renderer, mTexture, 0, &rect,
+                   0.0, 0, SDL_FLIP_NONE);
+
 }
 
 UI::List::List(const char *name)
     : MenuItem(name),
       mPos(0)
 {
-
 }
 
 UI::List::~List()
@@ -250,6 +274,7 @@ bool UI::List::keyEvent(int key)
             mPos--;
         else
             mPos = mItems.size()-1;
+        if ( mGUIMode ) focusEvent();
     }
     else if ( key == UI::KRIGHT )
     {
@@ -257,6 +282,7 @@ bool UI::List::keyEvent(int key)
             mPos++;
         else
             mPos = 0;
+        if ( mGUIMode ) focusEvent();
     }
     return false;
 }
@@ -271,7 +297,23 @@ std::string UI::List::drawEventTUI(bool selected)
 
 SDL_Texture *UI::List::drawEventGUI()
 {
+  return getTexture();
+}
 
+void UI::List::focusEvent()
+{
+  if ( mGUIMode ) {
+    std::string text = getName() + ": <- " + mItems[mPos] + " ->";
+    updateTexture(text.c_str());
+  }
+}
+
+void UI::List::defocusEvent()
+{
+  if ( mGUIMode ) {
+    std::string text = getName() + ": " + mItems[mPos];
+    updateTexture(text.c_str());
+  }
 }
 
 void UI::List::addItem(const char *item)
@@ -287,7 +329,7 @@ void UI::List::setDefaultItem(int id)
 
 std::string UI::List::curItem() const
 {
-    return mItems[mPos];
+  return mItems[mPos];
 }
 
 UI::InputField::InputField(const char * name,
@@ -297,7 +339,6 @@ UI::InputField::InputField(const char * name,
       mContent(content),
       mLimit(limit)
 {
-
 }
 
 UI::InputField::~InputField()
@@ -314,11 +355,13 @@ bool UI::InputField::keyEvent(int key)
     {
         if ( (int)mContent.size() < mLimit )
             mContent += key;
+        if ( mGUIMode ) focusEvent();
     }
     else if ( key == UI::KBACKSPACE )
     {
         if ( !mContent.empty() )
             mContent.pop_back();
+        if ( mGUIMode ) focusEvent();
     }
     return false;
 }
@@ -333,11 +376,28 @@ std::string UI::InputField::drawEventTUI(bool selected)
 
 SDL_Texture *UI::InputField::drawEventGUI()
 {
+  return getTexture();
+}
+
+void UI::InputField::focusEvent()
+{
+  if ( mGUIMode ) {
+    std::string text = getName() + ": " + mContent + "_";
+    updateTexture(text.c_str());
+  }
+}
+
+void UI::InputField::defocusEvent()
+{
+  if ( mGUIMode ) {
+    std::string text = getName() + ": " + mContent;
+    updateTexture(text.c_str());
+  }
 }
 
 std::string UI::InputField::content() const
 {
-    return mContent;
+  return mContent;
 }
 
 UI::Notification::Notification(const char * text,
@@ -403,7 +463,7 @@ void UI::initGUI()
   }
 
   /* load font */
-  mGUI.font = TTF_OpenFont("assets/lazy.ttf", 28);
+  mGUI.font = TTF_OpenFont("assets/font.ttf", 28);
   if ( !mGUI.font ) mGUI.error("TTF_OpenFont failed");
 }
 
@@ -464,8 +524,8 @@ int UI::convertKeyGUI(int key)
 
 SDL_Texture *UI::textToTexture(const char *text, SDL_Color color)
 {
-  SDL_Surface * s = TTF_RenderText_Solid(mGUI.font, text, color);
-  if ( !s ) mGUI.error("TTF_RenderText_Solid failed");
+  SDL_Surface * s = TTF_RenderText_Blended(mGUI.font, text, color);
+  if ( !s ) mGUI.error("TTF_RenderText_Blended failed");
   SDL_Texture * t = SDL_CreateTextureFromSurface(mGUI.renderer, s);
   if ( !t ) mGUI.error("SDL_CreateTextureFromSurface failed");
   SDL_FreeSurface(s);

@@ -35,8 +35,9 @@ private:
     SDL_Renderer * renderer;
     SDL_Texture * curTexture;
     TTF_Font * font;
-    const int WINDOW_WIDTH = 640;
-    const int WINDOW_HEIGHT = 480;
+    const int BLOCK_SIZE = 15;
+    const int WINDOW_WIDTH = 80*BLOCK_SIZE;
+    const int WINDOW_HEIGHT = 24*BLOCK_SIZE;
     void error(const char * message);
   };
 
@@ -89,11 +90,13 @@ public:
     virtual SDL_Texture * drawEventGUI() = 0;
     virtual std::string drawEventTUI(bool selected) = 0;
 
+    virtual void focusEvent();
+    virtual void defocusEvent();
+
     const std::string & getName() const;
 
     /* SDL related */
     void updateTexture(const char * text);
-    void render(int x, int y);
     SDL_Texture * getTexture();
 };
 
@@ -134,6 +137,8 @@ public:
     virtual bool keyEvent(int key);
     virtual std::string drawEventTUI(bool selectd);
     virtual SDL_Texture * drawEventGUI();
+    virtual void focusEvent();
+    virtual void defocusEvent();
 
     /**
      * @brief Adds an item to the list.
@@ -177,6 +182,8 @@ public:
     virtual bool keyEvent(int key);
     virtual std::string drawEventTUI(bool selected);
     virtual SDL_Texture * drawEventGUI();
+    virtual void focusEvent();
+    virtual void defocusEvent();
 
     /**
      * @brief Returns the content of the InputField.
@@ -230,11 +237,14 @@ protected:
      * @brief Starts the Menu.
      */
     void loop();
+
+    void init(); // GUI related
 private:
     std::vector<MenuItem*> mItems;
     int mPos;
     bool mExpired;
     std::string mName;
+    SDL_Texture * mTexture;
 
     std::function<bool(void)> * mLoopTill;
 };
