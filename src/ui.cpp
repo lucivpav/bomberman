@@ -78,8 +78,8 @@ UI::Menu::Menu(const char * name,
     :mPos(1),
       mExpired(false),
       mName(name),
-      mLoopTill(loopTill),
-      mTexture(nullptr)
+      mTexture(nullptr),
+      mLoopTill(loopTill)
 {
   if ( mGUIMode ) mTexture = UI::textToTexture(name, {0,0,0});
 }
@@ -243,7 +243,6 @@ void UI::Menu::drawEventGUI()
     y += h+hoffset;
     i++;
   }
-  // TODO: title
   SDL_Rect rect = {title_x, title_y, 0, 0};
   SDL_QueryTexture(mTexture,0,0,&rect.w, &rect.h);
   rect.x -= rect.w/2;
@@ -415,7 +414,7 @@ bool UI::Notification::confirmAction()
     return true;
 }
 
-void UI::GUI::error(const char * message)
+void UI::GUI::error(const std::string & message)
 {
   std::cerr << message << ", " << SDL_GetError() << std::endl;
   throw;

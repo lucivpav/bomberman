@@ -5,6 +5,7 @@
 Player::Player(Game *game, const Pos &pos, int lives, int bombs)
     : mGame(game),
       mPos(pos),
+      mDir(0,1),
       mLives(lives),
       mMaxBombs(bombs),
       mBombsAvail(bombs),
@@ -16,12 +17,18 @@ Player::Player(Game *game, const Pos &pos, int lives, int bombs)
 
 Pos Player::getPos() const
 {
-    return mPos;
+  return mPos;
 }
 
-void Player::setPos(const Pos &pos)
+Pos Player::getDir() const
 {
-    this->mPos = pos;
+  return mDir;
+}
+
+void Player::move(const Pos & dir)
+{
+  mDir = dir;
+  mPos += dir;
 }
 
 void Player::die()

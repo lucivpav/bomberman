@@ -10,6 +10,7 @@
 #include "ghost.h"
 #include "trap.h"
 #include "server.h"
+#include "game_gui.h"
 
 #include <map>
 
@@ -129,11 +130,14 @@ public:
      * @return Current time in milliseconds since epoch.
      */
     static std::chrono::milliseconds getTimestamp();
+
+    GameGUI * getGameGUI() const { return mGameGUI; }
 private:
     bool mIsOnlineGame;
     std::string mAddress;
     std::string mPort;
     Server mServer;
+    GameGUI * mGameGUI;
 
     /* setup */
     std::string mLevelPath;
@@ -164,10 +168,19 @@ private:
 
     void loop();
     void keyEvent(int key);
-    void drawGhosts() const;
-    void drawStatus() const;
-    void drawFlames() const;
+    void keyEventTUI();
+    void keyEventGUI();
+
+    void drawEvent() const;
+    void drawGhostsTUI() const;
+    void drawStatusTUI() const;
+    void drawFlamesTUI() const;
     void drawTraps() const;
+
+    void drawGhostsGUI() const;
+    void drawStatusGUI() const;
+    void drawFlamesGUI() const;
+    void drawPlayersGUI() const;
 
     void handleBombs();
     void handleFlames();

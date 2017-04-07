@@ -31,11 +31,9 @@ public:
      */
     Pos getPos() const;
 
-    /**
-     * @brief Changes the position of the Player.
-     * @param pos The new position of the Player.
-     */
-    void setPos(const Pos & pos);
+    Pos getDir() const;
+
+    void move(const Pos & dir);
 
     /**
      * @brief Substracts one life from Player's lives (if possible).
@@ -157,6 +155,7 @@ protected:
     Game * mGame;
 private:
     Pos mPos;
+    Pos mDir;
     int mLives;
     int mMaxBombs;
     int mBombsAvail;

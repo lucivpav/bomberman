@@ -36,9 +36,9 @@ private:
     SDL_Texture * curTexture;
     TTF_Font * font;
     const int BLOCK_SIZE = 15;
-    const int WINDOW_WIDTH = 80*BLOCK_SIZE;
+    const int WINDOW_WIDTH = 79*BLOCK_SIZE;
     const int WINDOW_HEIGHT = 24*BLOCK_SIZE;
-    void error(const char * message);
+    void error(const std::string &message);
   };
 
 public:

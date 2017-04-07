@@ -22,6 +22,7 @@ Game::Game(const std::string & levelPath,
     : mIsOnlineGame(port),
       mAddress(address ? address : ""),
       mPort(port ? port : ""),
+      mGameGUI(nullptr),
       mEnableTraps(enableTraps),
       mEnableGhosts(enableGhosts),
       mLives(lives),
@@ -32,13 +33,15 @@ Game::Game(const std::string & levelPath,
       ,mShouldDrawPath(false)
 #endif
 {
-    if ( !load(levelPath, enableTraps, enableGhosts, lives) )
-        return;
+  if ( UI::mGUIMode ) mGameGUI = new GameGUI();
 
-    if ( mIsOnlineGame && !initOnlineGame() )
-        return;
+  if ( !load(levelPath, enableTraps, enableGhosts, lives) )
+    return;
 
-    loop();
+  if ( mIsOnlineGame && !initOnlineGame() )
+    return;
+
+  loop();
 }
 
 Game::~Game()
@@ -116,59 +119,48 @@ bool Game::initOnlineGame()
 
 void Game::loop()
 {
-    clear();
-    bool firstRound = true;
-    while (1)
+  clear();
+  bool firstRound = true;
+  while (1)
+  {
+    if ( mExpired )
+      break;
+
+    if ( mIsOnlineGame && !mServer.isConnected() )
     {
-        if ( mExpired )
-            break;
-
-        if ( mIsOnlineGame && !mServer.isConnected() )
-        {
-            networkErrorAction();
-            break;
-        }
-
-        handleBombs();
-        handleFlames();
-        int c = getch();
-        if ( c != ERR )
-            keyEvent(c);
-
-        mEnemy->makeDecision();
-        handleGhosts();
-        handleTraps();
-        assert ( mPlayer->getPos() != mEnemy->getPos() );
-
-        mMap.draw();
-        drawTraps();
-        drawGhosts();
-        drawFlames();
-
-#ifdef DEBUG
-        if ( mShouldDrawPath )
-            drawPath();
-#endif
-
-        drawStatus();
-
-        if ( !firstRound )
-            refresh();
-        else if ( mIsOnlineGame )
-        {
-            mServer.initOnlineGame();
-            firstRound = false;
-        }
-
-        if ( mIsOnlineGame )
-            mServer.update();
-
-        if ( mPlayer->isDead() )
-            loseAction();
-        else if ( mEnemy->isDead() )
-            winAction();
-
+      networkErrorAction();
+      break;
     }
+
+    handleBombs();
+    handleFlames();
+
+    if ( UI::mGUIMode ) keyEventGUI();
+    else keyEventTUI();
+
+    mEnemy->makeDecision();
+    handleGhosts();
+    handleTraps();
+    assert ( mPlayer->getPos() != mEnemy->getPos() );
+
+    drawEvent();
+
+    if ( !firstRound && !UI::mGUIMode )
+      refresh();
+    else if ( mIsOnlineGame )
+    {
+      mServer.initOnlineGame();
+      firstRound = false;
+    }
+
+    if ( mIsOnlineGame )
+      mServer.update();
+
+    if ( mPlayer->isDead() )
+      loseAction();
+    else if ( mEnemy->isDead() )
+      winAction();
+  }
 }
 
 void Game::keyEvent(int key)
@@ -184,25 +176,25 @@ void Game::keyEvent(int key)
     {
         mExpired = true;
     }
-    else if ( key == KEY_DOWN || key == 's' )
+    else if ( key == UI::KDOWN || key == 's' )
     {
         if ( !moveButtonHold || moveButtonPressed || mPlayer->hasSpeedBonus() )
             movePlayer(*mPlayer, Pos(0,1));
         moveButtonPressed = !moveButtonPressed;
     }
-    else if ( key == KEY_UP || key == 'w' )
+    else if ( key == UI::KUP || key == 'w' )
     {
         if ( !moveButtonHold || moveButtonPressed || mPlayer->hasSpeedBonus() )
             movePlayer(*mPlayer, Pos(0,-1));
         moveButtonPressed = !moveButtonPressed;
     }
-    else if ( key == KEY_LEFT || key == 'a' )
+    else if ( key == UI::KLEFT || key == 'a' )
     {
         if ( !moveButtonHold || moveButtonPressed || mPlayer->hasSpeedBonus() )
             movePlayer(*mPlayer, Pos(-1,0));
         moveButtonPressed = !moveButtonPressed;
     }
-    else if ( key == KEY_RIGHT || key == 'd' )
+    else if ( key == UI::KRIGHT || key == 'd' )
     {
         if ( !moveButtonHold || moveButtonPressed || mPlayer->hasSpeedBonus() )
             movePlayer(*mPlayer, Pos(1,0));
@@ -235,14 +227,30 @@ void Game::keyEvent(int key)
 #endif
 }
 
-void Game::drawGhosts() const
+void Game::keyEventTUI()
+{
+  int c = getch();
+  if ( c == ERR ) return;
+  keyEvent(UI::convertKeyTUI(c));
+}
+
+void Game::keyEventGUI()
+{
+  SDL_Event e;
+  if ( !SDL_PollEvent(&e) ) return;
+  if ( e.type == SDL_QUIT ) keyEvent('q');
+  if ( e.type == SDL_KEYDOWN )
+    keyEvent(UI::convertKeyGUI(e.key.keysym.sym));
+}
+
+void Game::drawGhostsTUI() const
 {
     for ( const auto & ghost : mGhosts )
         mvaddch(ghost.first.y, ghost.first.x,
                  Block::typeToSymbol(Block::GHOST));
 }
 
-void Game::drawStatus() const
+void Game::drawStatusTUI() const
 {
     int width, height;
     getmaxyx(stdscr, height, width);
@@ -262,7 +270,7 @@ void Game::drawStatus() const
     mvprintw(height-1, width-enemyStatus.size()-1, enemyStatus.c_str());
 }
 
-void Game::drawFlames() const
+void Game::drawFlamesTUI() const
 {
     for ( const auto & flame : mFlames )
         mvaddch(flame.first.y, flame.first.x,
@@ -271,15 +279,94 @@ void Game::drawFlames() const
 
 void Game::drawTraps() const
 {
-    for ( const auto & trap : mTraps )
-        if ( mPlayer->getPos() != trap.first
-             && mEnemy->getPos() != trap.first
-             && mMap.get(Pos(trap.first)) != Block::typeToSymbol(Block::TIMED_BOMB)
-             && mMap.get(Pos(trap.first)) != Block::typeToSymbol(Block::REMOTE_BOMB))
-            mvaddch(trap.first.y, trap.first.x,
-                    trap.second.isOpen() ?
-                        Block::typeToSymbol(Block::TRAP_OPENED)
-                      : Block::typeToSymbol(Block::TRAP_CLOSED));
+  for ( const auto & trap : mTraps )
+    if ( mPlayer->getPos() != trap.first
+      && mEnemy->getPos() != trap.first
+      && mMap.get(Pos(trap.first)) != Block::typeToSymbol(Block::TIMED_BOMB)
+      && mMap.get(Pos(trap.first)) != Block::typeToSymbol(Block::REMOTE_BOMB))
+    {
+      Block::Type t = trap.second.isOpen() ? Block::TRAP_OPENED
+                                           : Block::TRAP_CLOSED;
+      if ( UI::mGUIMode )
+        mGameGUI->drawBlock(t, trap.first.x, trap.first.y);
+      else
+        mvaddch(trap.first.y, trap.first.x, Block::typeToSymbol(t));
+    }
+}
+
+void Game::drawGhostsGUI() const
+{
+  for ( const auto & ghost : mGhosts )
+    mGameGUI->drawBlock(Block::GHOST, ghost.first.x, ghost.first.y);
+}
+
+void Game::drawStatusGUI() const
+{
+  std::string status =
+    "LIVES: " +
+    std::to_string(mPlayer->getLives()) +
+    " BOMBS: " +
+    std::to_string(mPlayer->getBombsAvail());
+
+  std::string enemyStatus =
+    "LIVES: " +
+    std::to_string(mEnemy->getLives()) +
+    " BOMBS: " +
+    std::to_string(mEnemy->getBombsAvail());
+
+  int bsize = UI::mGUI.BLOCK_SIZE;
+  SDL_Texture * texture1 = UI::textToTexture(status.c_str(), {0,0,0});
+  SDL_Texture * texture2 = UI::textToTexture(enemyStatus.c_str(), {0,0,0});
+
+  SDL_Rect rect = {0, bsize*(mMap.height()-1), 0, 0};
+  SDL_QueryTexture(texture1,0,0,&rect.w,&rect.h);
+  SDL_RenderCopyEx(UI::mGUI.renderer, texture1, 0, &rect, 0.0,0,SDL_FLIP_NONE);
+
+  rect = {mMap.width()*bsize, bsize*(mMap.height()-1), 0, 0};
+  SDL_QueryTexture(texture2,0,0,&rect.w,&rect.h);
+  rect.x -= rect.w;
+  SDL_RenderCopyEx(UI::mGUI.renderer, texture2, 0, &rect, 0.0,0,SDL_FLIP_NONE);
+}
+
+void Game::drawFlamesGUI() const
+{
+  for ( const auto & flame : mFlames )
+    mGameGUI->drawBlock(Block::FLAME, flame.first.x, flame.first.y);
+}
+
+void Game::drawPlayersGUI() const
+{
+  mGameGUI->drawPlayer(*mPlayer);
+  mGameGUI->drawEnemy(*mEnemy);
+}
+
+void Game::drawEvent() const
+{
+  if ( UI::mGUIMode ) {
+    SDL_SetRenderDrawColor(UI::mGUI.renderer, 76, 65, 65, 0xFF);
+    SDL_RenderClear(UI::mGUI.renderer);
+    mMap.drawGUI();
+    drawPlayersGUI();
+    drawTraps();
+    drawGhostsGUI();
+    drawFlamesGUI();
+  } else {
+    mMap.drawTUI();
+    drawTraps();
+    drawGhostsTUI();
+    drawFlamesTUI();
+  }
+
+#ifdef DEBUG
+  if ( mShouldDrawPath )
+    drawPath();
+#endif
+
+  if ( UI::mGUIMode ) {
+    drawStatusGUI();
+    SDL_RenderPresent(UI::mGUI.renderer);
+  }
+  else drawStatusTUI();
 }
 
 void Game::movePlayer(Player &player, const Pos & offset)
@@ -326,7 +413,7 @@ void Game::movePlayer(Player &player, const Pos & offset)
         player.die();
 
     mMap.at(newPos) = player.getSymbol();
-    player.setPos(newPos);
+    player.move(offset);
 }
 
 bool Game::canMoveGhost(const Pos & where) const
@@ -662,7 +749,7 @@ bool Game::load(const std::string & levelPath,
 
     try
     {
-        mMap.load(levelPath.c_str(), playerPos, enemyPos, trapsPos);
+        mMap.load(levelPath.c_str(), playerPos, enemyPos, trapsPos, mGameGUI);
     }
     catch ( ... )
     {

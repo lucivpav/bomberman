@@ -8,13 +8,17 @@ Map::Map()
 {
 }
 
-Map::Map(const char *file, Pos & playerPos, Pos &enemyPos, std::set<Pos> & trapsPos)
+Map::Map(const char *file, Pos & playerPos, Pos &enemyPos,
+         std::set<Pos> & trapsPos, GameGUI * gameGUI)
+  :mGameGUI(gameGUI)
 {
-    load(file, playerPos, enemyPos, trapsPos);
+    load(file, playerPos, enemyPos, trapsPos, gameGUI);
 }
 
-void Map::load(const char *file, Pos & playerPos, Pos &enemyPos, std::set<Pos> & trapsPos)
+void Map::load(const char *file, Pos & playerPos, Pos &enemyPos,
+               std::set<Pos> & trapsPos, GameGUI * gameGUI)
 {
+    mGameGUI = gameGUI;
     const char LF = 10, CR = 13;
     enum Encoding {UNIX, DOS, MAC};
     Encoding encoding;
@@ -146,10 +150,23 @@ Map::~Map()
         delete [] line;
 }
 
-void Map::draw()
+void Map::drawTUI() const
 {
     for ( int i = 0 ; i < height() ; i++ )
         mvprintw(i, 0, mMap[i]); //null terminator necessary
+}
+
+void Map::drawGUI() const
+{
+  for ( int i = 0 ; i < height() ; i++ )
+    for ( int j = 0 ; j < width() ; j++ )
+    {
+      Block::Type t = Block::symbolToType(mMap[i][j]);
+      /* Player and enemy are drawn in Game class */
+      if ( t == Block::PLAYER || t == Block::ENEMY )
+        continue;
+      mGameGUI->drawBlock(t, j, i);
+    }
 }
 
 char & Map::at(const Pos &pos)

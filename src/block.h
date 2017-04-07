@@ -25,7 +25,8 @@ public:
                 BONUS_SPEED,
                 BONUS_REMOTE,
                 BONUS_RADIUS,
-                REMOTE_BOMB };
+                REMOTE_BOMB,
+                N_TYPES };
 
     /**
      * @brief Converts Type to a symbol -

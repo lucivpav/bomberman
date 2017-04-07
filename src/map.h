@@ -7,6 +7,7 @@
 #include "block.h"
 #include "player.h"
 #include "pos.h"
+#include "game_gui.h"
 
 /**
  * @brief The Map class represents a game board.
@@ -53,7 +54,7 @@ public:
     Map(const char * file,
         Pos & playerPos,
         Pos & enemyPos,
-        std::set<Pos> & trapsPos);
+        std::set<Pos> & trapsPos, GameGUI *gameGUI=0);
 
     /**
      * @brief Loads a game board from the file.
@@ -66,14 +67,15 @@ public:
     void load(const char * file,
               Pos & playerPos,
               Pos & enemyPos,
-              std::set<Pos> & trapsPos);
+              std::set<Pos> & trapsPos, GameGUI *gameGUI=0);
 
     ~Map();
 
     /**
      * @brief Draws the game board to the screen.
      */
-    void draw();
+    void drawTUI() const;
+    void drawGUI() const;
 
     /**
      * @brief Returns a symbol, a graphical representation of an object in
@@ -121,6 +123,8 @@ private:
     void clearMap();
     bool validOuterBlock(char symbol) const;
     bool validInnerBlock(char symbol) const;
+
+    GameGUI * mGameGUI;
 };
 
 #endif
