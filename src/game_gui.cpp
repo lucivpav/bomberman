@@ -5,6 +5,10 @@
 #include "ui.h"
 
 GameGUI::GameGUI()
+   :mPlayerStatusTexture(nullptr),
+    mEnemyStatusTexture(nullptr),
+    mPrevPlayerStatus({-1,-1}),
+    mPrevEnemyStatus({-1,-1})
 {
   for ( int i = 0 ; i < Block::N_TYPES ; ++i )
     mBlockTextures[i] = nullptr;
@@ -41,11 +45,24 @@ GameGUI::GameGUI()
   mEnemyTextures[RIGHT] = loadTexture("assets/enemy_right.png");
 }
 
+GameGUI::~GameGUI()
+{
+  for ( int i = 0 ; i < Block::N_TYPES ; ++i )
+    SDL_DestroyTexture(mBlockTextures[i]);
+
+  for ( int i = 0 ; i < N_DIRECTIONS ; ++i ) {
+    SDL_DestroyTexture(mPlayerTextures[i]);
+    SDL_DestroyTexture(mEnemyTextures[i]);
+  }
+  SDL_DestroyTexture(mPlayerStatusTexture);
+  SDL_DestroyTexture(mEnemyStatusTexture);
+}
+
 void GameGUI::drawBlock(Block::Type t, int col, int row) const
 {
   if ( !mBlockTextures[t] ) return;
   drawTexture(mBlockTextures[t], col, row);
-  }
+}
 
 void GameGUI::drawPlayer(const Player &p) const
 {
@@ -104,4 +121,22 @@ void GameGUI::drawTexture(SDL_Texture *texture, int col, int row) const
   SDL_Rect rect = {x,y-(h-bsize),bsize,h};
   SDL_RenderCopyEx(UI::mGUI.renderer, texture, 0, &rect,
                    0.0, 0, SDL_FLIP_NONE);
+}
+
+SDL_Texture *GameGUI::getStatusTexture(bool enemy, int lives, int bombs)
+{
+  Status & st = enemy ? mPrevEnemyStatus : mPrevPlayerStatus;
+  SDL_Texture * t = enemy ? mEnemyStatusTexture : mPlayerStatusTexture;
+  if ( lives == st.lives && bombs == st.bombs )
+    return t;
+
+  std::string text = "LIVES: " + std::to_string(lives) +
+                    " BOMBS: " + std::to_string(bombs);
+  SDL_DestroyTexture(t);
+  st.lives = lives;
+  st.bombs = bombs;
+  t = UI::textToTexture(text.c_str(), {0,0,});
+  if ( enemy ) mEnemyStatusTexture = t;
+  else mPlayerStatusTexture = t;
+  return t;
 }

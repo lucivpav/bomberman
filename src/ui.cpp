@@ -17,7 +17,7 @@ UI::MenuItem::MenuItem(const char * name)
 
 UI::MenuItem::~MenuItem()
 {
-
+  if ( mGUIMode ) SDL_DestroyTexture(mTexture);
 }
 
 void UI::MenuItem::focusEvent()
@@ -88,6 +88,7 @@ UI::Menu::~Menu()
 {
     for ( auto & item : mItems )
         delete item;
+    if ( mGUIMode ) SDL_DestroyTexture(mTexture);
 }
 
 void UI::Menu::addItem(MenuItem * item)
@@ -117,7 +118,7 @@ void UI::Menu::loop()
               keyEvent(convertKeyGUI(e.key.keysym.sym));
 
             /* draw */
-            SDL_SetRenderDrawColor(mGUI.renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+            SDL_SetRenderDrawColor(mGUI.renderer, 191, 175, 175, 0xFF);
             SDL_RenderClear(mGUI.renderer);
             drawEventGUI();
             SDL_RenderPresent(mGUI.renderer);

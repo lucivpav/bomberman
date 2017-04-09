@@ -302,21 +302,13 @@ void Game::drawGhostsGUI() const
 
 void Game::drawStatusGUI() const
 {
-  std::string status =
-    "LIVES: " +
-    std::to_string(mPlayer->getLives()) +
-    " BOMBS: " +
-    std::to_string(mPlayer->getBombsAvail());
-
-  std::string enemyStatus =
-    "LIVES: " +
-    std::to_string(mEnemy->getLives()) +
-    " BOMBS: " +
-    std::to_string(mEnemy->getBombsAvail());
-
   int bsize = UI::mGUI.BLOCK_SIZE;
-  SDL_Texture * texture1 = UI::textToTexture(status.c_str(), {0,0,0});
-  SDL_Texture * texture2 = UI::textToTexture(enemyStatus.c_str(), {0,0,0});
+  SDL_Texture * texture1 = mGameGUI->getStatusTexture(false,
+                                                      mPlayer->getLives(),
+                                                      mPlayer->getBombsAvail());
+  SDL_Texture * texture2 = mGameGUI->getStatusTexture(true,
+                                                      mEnemy->getLives(),
+                                                      mEnemy->getBombsAvail());
 
   int y = UI::mGUI.WINDOW_HEIGHT-(5*bsize)/4;
   SDL_Rect rect = {0, y, 0, 0};
@@ -351,6 +343,7 @@ void Game::drawEvent() const
     drawTraps();
     drawGhostsGUI();
     drawFlamesGUI();
+    usleep(1000000/30);
   } else {
     mMap.drawTUI();
     drawTraps();
