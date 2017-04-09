@@ -10,6 +10,7 @@ A command line Bomberman game written in C++.
 * Multiplayer (over a network)
 * Bonuses (increased flame length, multiple bombs, remote bombs, faster movement)
 * AI
+* GUI mode (--gui)
 
 ### Controls ###
 * WASD/arrows move
@@ -21,22 +22,22 @@ A command line Bomberman game written in C++.
 * pthread
 * ncurses
 * unix sockets
+* SDL2, SDL2_image, SDL2_ttf
 * doxygen (optional)
 
 ### Compiling on Ubuntu ###
 ```Bash
-apt-get install libncurses-dev
-
 make compile # to compile the game 
 # OR
-apt-get install doxygen
 make # to compile the game, docs and tests
 ```
 
 ### Running ###
 ```Bash
 ./bomberman
+# OR
+./bomberman --gui
 ```
 User is responsible for ensuring the terminal size is at least 
-80x24 characters during program execution. The program is not
+47x24 characters during program execution. The program is not
 guaranteed to function properly if this condition is not met.
