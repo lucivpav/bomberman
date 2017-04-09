@@ -318,11 +318,12 @@ void Game::drawStatusGUI() const
   SDL_Texture * texture1 = UI::textToTexture(status.c_str(), {0,0,0});
   SDL_Texture * texture2 = UI::textToTexture(enemyStatus.c_str(), {0,0,0});
 
-  SDL_Rect rect = {0, bsize*(mMap.height()-1), 0, 0};
+  int y = UI::mGUI.WINDOW_HEIGHT-(5*bsize)/4;
+  SDL_Rect rect = {0, y, 0, 0};
   SDL_QueryTexture(texture1,0,0,&rect.w,&rect.h);
   SDL_RenderCopyEx(UI::mGUI.renderer, texture1, 0, &rect, 0.0,0,SDL_FLIP_NONE);
 
-  rect = {mMap.width()*bsize, bsize*(mMap.height()-1), 0, 0};
+  rect = {(int)UI::mGUI.WINDOW_WIDTH, y, 0, 0};
   SDL_QueryTexture(texture2,0,0,&rect.w,&rect.h);
   rect.x -= rect.w;
   SDL_RenderCopyEx(UI::mGUI.renderer, texture2, 0, &rect, 0.0,0,SDL_FLIP_NONE);

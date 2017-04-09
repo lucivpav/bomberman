@@ -15,6 +15,10 @@
 class Map
 {
 public:
+
+    static const int maxWidth = 47;
+    static const int maxHeight = 23;
+
     /**
      * @brief The MapLoadException struct describes an error that may
      * occur while loading a game board from a file.
@@ -116,9 +120,6 @@ private:
     std::vector<char*> mMap;
 
     int mWidth;
-
-    static const int maxWidth = 80;
-    static const int maxHeight = 23;
 
     void clearMap();
     bool validOuterBlock(char symbol) const;
