@@ -11,6 +11,7 @@ A command line Bomberman game written in C++.
 * Bonuses (increased flame length, multiple bombs, remote bombs, faster movement)
 * AI
 * GUI mode (--gui)
+* Editor
 
 ### Controls ###
 * WASD/arrows move
