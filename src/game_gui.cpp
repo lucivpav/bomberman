@@ -60,6 +60,17 @@ GameGUI::~GameGUI()
 
 void GameGUI::drawBlock(Block::Type t, int col, int row) const
 {
+  if ( t == Block::PLAYER )
+  {
+    drawTexture(mPlayerTextures[FRONT], col, row);
+    return;
+  }
+  if ( t == Block::ENEMY )
+  {
+    drawTexture(mEnemyTextures[FRONT], col, row);
+    return;
+  }
+
   if ( !mBlockTextures[t] ) return;
   drawTexture(mBlockTextures[t], col, row);
 }

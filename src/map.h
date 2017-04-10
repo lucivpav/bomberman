@@ -58,7 +58,9 @@ public:
     Map(const char * file,
         Pos & playerPos,
         Pos & enemyPos,
-        std::set<Pos> & trapsPos, GameGUI *gameGUI=0);
+        std::set<Pos> & trapsPos,
+        GameGUI *gameGUI = 0,
+        bool drawPlayers = false);
 
     /**
      * @brief Loads a game board from the file.
@@ -71,7 +73,11 @@ public:
     void load(const char * file,
               Pos & playerPos,
               Pos & enemyPos,
-              std::set<Pos> & trapsPos, GameGUI *gameGUI=0);
+              std::set<Pos> & trapsPos,
+              GameGUI *gameGUI = 0,
+              bool drawPlayers = false);
+
+    void load_keep(const char * file);
 
     ~Map();
 
@@ -116,6 +122,9 @@ public:
      * @return true if the position is valid, false otherwise.
      */
     bool withinBounds(const Pos & pos) const;
+
+    void set(const Pos & pos, Block::Type block);
+    void save(const std::string & fileName) const;
 private:
     std::vector<char*> mMap;
 
@@ -126,6 +135,7 @@ private:
     bool validInnerBlock(char symbol) const;
 
     GameGUI * mGameGUI;
+    bool mDrawPlayers;
 };
 
 #endif

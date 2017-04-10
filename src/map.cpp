@@ -9,16 +9,24 @@ Map::Map()
 }
 
 Map::Map(const char *file, Pos & playerPos, Pos &enemyPos,
-         std::set<Pos> & trapsPos, GameGUI * gameGUI)
-  :mGameGUI(gameGUI)
+         std::set<Pos> & trapsPos, GameGUI * gameGUI, bool drawPlayers)
+  :mGameGUI(gameGUI),
+    mDrawPlayers(drawPlayers)
 {
     load(file, playerPos, enemyPos, trapsPos, gameGUI);
 }
 
+void Map::load_keep(const char *file) {
+  Pos player, enemy;
+  std::set<Pos> traps;
+  load(file, player, enemy, traps, mGameGUI, mDrawPlayers);
+}
+
 void Map::load(const char *file, Pos & playerPos, Pos &enemyPos,
-               std::set<Pos> & trapsPos, GameGUI * gameGUI)
+               std::set<Pos> & trapsPos, GameGUI * gameGUI, bool drawPlayers)
 {
     mGameGUI = gameGUI;
+    mDrawPlayers = drawPlayers;
     const char LF = 10, CR = 13;
     enum Encoding {UNIX, DOS, MAC};
     Encoding encoding;
@@ -163,7 +171,7 @@ void Map::drawGUI() const
     {
       Block::Type t = Block::symbolToType(mMap[i][j]);
       /* Player and enemy are drawn in Game class */
-      if ( t == Block::PLAYER || t == Block::ENEMY )
+      if ( !mDrawPlayers && (t == Block::PLAYER || t == Block::ENEMY) )
         continue;
       mGameGUI->drawBlock(t, j, i);
     }
@@ -226,4 +234,16 @@ bool Map::validInnerBlock(char symbol) const
             || symbol == Block::typeToSymbol(Block::TRAP_CLOSED)
             || symbol == Block::typeToSymbol(Block::TRAP_OPENED)
             || symbol == Block::typeToSymbol(Block::DESTRUCTABLE);
+}
+
+void Map::set(const Pos &pos, Block::Type block)
+{
+  mMap[pos.y][pos.x] = Block::typeToSymbol(block);
+}
+
+void Map::save(const std::string &fileName) const
+{
+  std::ofstream f(fileName, std::ifstream::out | std::ifstream::binary );
+  for ( auto line : mMap )
+    f << line << std::endl;
 }

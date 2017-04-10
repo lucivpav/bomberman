@@ -1,6 +1,6 @@
 LDFLAGS=-lncurses -lpthread -lSDL2 -lSDL2_image -lSDL2_ttf
 CFLAGS=-std=c++11 -Wall -pedantic -Wno-long-long -O0 -ggdb
-OBJECTS=bomberman.o map.o block.o game.o pos.o countdown.o player.o enemy.o ai_player.o online_player.o ui.o game_gui.o mainmenu.o singleplayermenu.o multiplayermenu.o hostmenu.o connectmenu.o bonus.o bomb.o ghost.o trap.o client.o server.o clientgame.o
+OBJECTS=bomberman.o map.o block.o game.o pos.o countdown.o player.o enemy.o ai_player.o online_player.o ui.o game_gui.o mainmenu.o singleplayermenu.o multiplayermenu.o editor.o editormenu.o savemenu.o loadmenu.o hostmenu.o connectmenu.o bonus.o bomb.o ghost.o trap.o client.o server.o clientgame.o
 
 all: compile tests doc
 
@@ -68,6 +68,18 @@ singleplayermenu.o: src/singleplayermenu.cpp  src/singleplayermenu.h src/game.h
 
 multiplayermenu.o: src/multiplayermenu.cpp src/multiplayermenu.h src/hostmenu.h src/connectmenu.h
 	$(CXX) -c $(CFLAGS) src/multiplayermenu.cpp
+
+editor.o: src/editor.cpp src/editor.h
+	$(CXX) -c $(CFLAGS) src/editor.cpp
+
+editormenu.o: src/editormenu.cpp src/editormenu.h
+	$(CXX) -c $(CFLAGS) src/editormenu.cpp
+
+savemenu.o: src/savemenu.cpp src/savemenu.h
+	$(CXX) -c $(CFLAGS) src/savemenu.cpp
+
+loadmenu.o: src/loadmenu.cpp src/loadmenu.h
+	$(CXX) -c $(CFLAGS) src/loadmenu.cpp
 
 hostmenu.o: src/hostmenu.cpp src/hostmenu.h src/game.h
 	$(CXX) -c $(CFLAGS) src/hostmenu.cpp

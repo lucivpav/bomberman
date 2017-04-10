@@ -119,7 +119,7 @@ bool Game::initOnlineGame()
 
 void Game::loop()
 {
-  clear();
+  if ( !UI::mGUIMode ) clear();
   bool firstRound = true;
   while (1)
   {

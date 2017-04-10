@@ -19,6 +19,7 @@ private:
     std::string mLevelsPath;
 
     bool singleplayerAction();
+    bool editorAction();
     bool multiplayerAction();
     bool exitAction();
 
